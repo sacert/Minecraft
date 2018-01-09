@@ -41,7 +41,7 @@ glm::mat4 buildMatrix()
  	);
  
  	glm::mat4 view = glm::lookAt(
- 		glm::vec3(4, 3, 3),	// Camera location in world coordinates
+ 		glm::vec3(-4, 3, 3),	// Camera location in world coordinates
  		glm::vec3(0, 0, 0),	// Looking at the origin
  		glm::vec3(0, 1, 0)	// Camera up vector
  	);
@@ -50,6 +50,10 @@ glm::mat4 buildMatrix()
  
  	return projection * view * model;
  }
+
+#define N 0.0625
+#define width (0.0625 * 15)
+#define height (0.0625 * 0)
 
 void LoadCube(GLuint program) {
     // Vertex Array Object
@@ -62,40 +66,59 @@ void LoadCube(GLuint program) {
 
     // An array of 3 vectors which represents 3 vertices
     static const GLfloat g_vertex_buffer_data[] = {
-        // x    y       z           U       V
-        1.0f,  1.0f,  1.0f,     0.0625f, 1.0f,
-        1.0f,  1.0f, -1.0f,     0.0625f, 1.0f,
-        1.0f, -1.0f,  1.0f,     0.0625f, 0.9375f,
-        1.0f, -1.0f, -1.0f,     0.0625f, 0.9375f,
-        -1.0f,  1.0f,  1.0f,    0.0f, 1.0f,
-        -1.0f,  1.0f, -1.0f,    0.0f, 1.0f,
-        -1.0f, -1.0f,  1.0f,    0.0f, 0.9375f,
-        -1.0f, -1.0f, -1.0f,    0.0f, 0.9365f,
-    };
+        //  X     Y     Z       U     V
+        // bottom
+        -1.0f,-1.0f,-1.0f,   width, height,
+        1.0f,-1.0f,-1.0f,   width+N, height,
+        -1.0f,-1.0f, 1.0f,   width, height+N,
+        1.0f,-1.0f,-1.0f,   width+N, height,
+        1.0f,-1.0f, 1.0f,   width+N, height+N,
+        -1.0f,-1.0f, 1.0f,   width, height+N,
 
-    static const GLubyte elements[][3] =
-    {
-        {7, 6, 4},
-        {1, 7, 5},
-        {2, 7, 3},
-        {1, 3, 7},
-        {7, 4, 5},
-        {2, 6, 7},
-        {4, 6, 2},
-        {0, 3, 1},
-        {3, 0, 2},
-        {0, 1, 5},
-        {0, 5, 4},
-        {0, 4, 2},
+        // top
+        -1.0f, 1.0f,-1.0f,   width, height,
+        -1.0f, 1.0f, 1.0f,   width, height+N,
+        1.0f, 1.0f,-1.0f,   width+N, height,
+        1.0f, 1.0f,-1.0f,   width+N, height,
+        -1.0f, 1.0f, 1.0f,   width, height+N,
+        1.0f, 1.0f, 1.0f,   width+N, height+N,
+
+        // front
+        -1.0f,-1.0f, 1.0f,   width+N, height,
+        1.0f,-1.0f, 1.0f,   width, height,
+        -1.0f, 1.0f, 1.0f,   width+N, height+N,
+        1.0f,-1.0f, 1.0f,   width, height,
+        1.0f, 1.0f, 1.0f,   width, height+N,
+        -1.0f, 1.0f, 1.0f,   width+N, height+N,
+
+        // back
+        -1.0f,-1.0f,-1.0f,   width, height,
+        -1.0f, 1.0f,-1.0f,   width, height+N,
+        1.0f,-1.0f,-1.0f,   width+N, height,
+        1.0f,-1.0f,-1.0f,   width+N, height,
+        -1.0f, 1.0f,-1.0f,   width, height+N,
+        1.0f, 1.0f,-1.0f,   width+N, height+N,
+
+        // left
+        -1.0f,-1.0f, 1.0f,   width, height+N,
+        -1.0f, 1.0f,-1.0f,   width+N, height,
+        -1.0f,-1.0f,-1.0f,   width, height,
+        -1.0f,-1.0f, 1.0f,   width, height+N,
+        -1.0f, 1.0f, 1.0f,   width+N, height+N,
+        -1.0f, 1.0f,-1.0f,   width+N, height,
+
+        // right
+        1.0f,-1.0f, 1.0f,   width+N, height+N,
+        1.0f,-1.0f,-1.0f,   width+N, height,
+        1.0f, 1.0f,-1.0f,   width, height,
+        1.0f,-1.0f, 1.0f,   width+N, height+N,
+        1.0f, 1.0f,-1.0f,   width, height,
+        1.0f, 1.0f, 1.0f,   width, height+N
+
     };
 
     // Give our vertices to OpenGL.
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-    // Create an element buffer and send the element data
- 	glGenBuffers(1, &gElements);
- 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gElements);
- 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
     GLuint iVert = glGetAttribLocation(program, "vert");
     glEnableVertexAttribArray(iVert);
@@ -152,13 +175,8 @@ void Render(GLuint program) {
     // bind the VAO (the triangle)
     glBindVertexArray(gVAO);
 
-    // draw the elements 
-    glDrawElements(
- 	    GL_TRIANGLES,  		// mode
- 	    3 * 12,             // count
-  	    GL_UNSIGNED_BYTE,   // type
-  	    nullptr             // element array buffer offset
-  	);
+    // draw the triangles 
+    glDrawArrays(GL_TRIANGLES, 0, 3*2*6);
     
     // unbind the VAO
     glBindVertexArray(0);
@@ -184,7 +202,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
-
+    
     // Open a window and create its OpenGL context
     window = glfwCreateWindow( 800, 600, "Minecraft", NULL, NULL);
     if( window == NULL ){
@@ -198,6 +216,9 @@ int main() {
         fprintf(stderr, "Failed to initialize GLEW\n");
         return -1;
     }
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
 
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
