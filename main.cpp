@@ -11,14 +11,25 @@
 // Include GLM
 #include <glm/glm.hpp>
 #include "glm/gtc/matrix_transform.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
 #include "shader.hpp"
+#include "texture.hpp"
+#include "bitmap.hpp"
 
 GLuint gVAO = 0;
 GLuint gVBO = 0;
 GLuint gElements = 0;
 GLFWwindow* window;
 GLint mvpMatrix;
+GLint tex;
+Texture* gTexture = NULL;
+
+void LoadTexture() {
+    Bitmap bmp = Bitmap::bitmapFromFile("texture.png");
+    bmp.flipVertically();
+    gTexture = new Texture(bmp);
+}
 
 glm::mat4 buildMatrix()
  {
@@ -51,14 +62,15 @@ void LoadCube(GLuint program) {
 
     // An array of 3 vectors which represents 3 vertices
     static const GLfloat g_vertex_buffer_data[] = {
-        1.0f,  1.0f,  1.0f,
-        1.0f,  1.0f, -1.0f,
-        1.0f, -1.0f,  1.0f,
-        1.0f, -1.0f, -1.0f,
-        -1.0f,  1.0f,  1.0f,
-        -1.0f,  1.0f, -1.0f,
-        -1.0f, -1.0f,  1.0f,
-        -1.0f, -1.0f, -1.0f,
+        // x    y       z           U       V
+        1.0f,  1.0f,  1.0f,     0.0625f, 1.0f,
+        1.0f,  1.0f, -1.0f,     0.0625f, 1.0f,
+        1.0f, -1.0f,  1.0f,     0.0625f, 0.9375f,
+        1.0f, -1.0f, -1.0f,     0.0625f, 0.9375f,
+        -1.0f,  1.0f,  1.0f,    0.0f, 1.0f,
+        -1.0f,  1.0f, -1.0f,    0.0f, 1.0f,
+        -1.0f, -1.0f,  1.0f,    0.0f, 0.9375f,
+        -1.0f, -1.0f, -1.0f,    0.0f, 0.9365f,
     };
 
     static const GLubyte elements[][3] =
@@ -85,15 +97,26 @@ void LoadCube(GLuint program) {
  	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gElements);
  	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
-    GLuint index = glGetAttribLocation(program, "vert");
-    glEnableVertexAttribArray(index);
+    GLuint iVert = glGetAttribLocation(program, "vert");
+    glEnableVertexAttribArray(iVert);
     glVertexAttribPointer(
         0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
         3,                  // size
         GL_FLOAT,           // type
         GL_FALSE,           // normalized?
-        0,                  // stride
+        5*sizeof(GLfloat),                  // stride
         (void*)0            // array buffer offset
+    );
+
+    GLuint ivertTexCoord = glGetAttribLocation(program, "vertTexCoord");
+    glEnableVertexAttribArray(ivertTexCoord);
+    glVertexAttribPointer(
+        1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+        2,                  // size
+        GL_FLOAT,           // type
+        GL_FALSE,           // normalized?
+        5*sizeof(GLfloat),                  // stride
+        (const GLvoid*)(3 * sizeof(GLfloat))         // array buffer offset
     );
 
     // unbind VAO and VBO 
@@ -109,6 +132,13 @@ void Render(GLuint program) {
     
     // bind the program (the shaders)
     glUseProgram(program);
+
+    // bind the texture and set the "tex" uniform in the fragment shader
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gTexture->object());
+    // Get the id for the uniform variable "tex"
+ 	tex = glGetUniformLocation(program, "tex");
+    glUniform1i(tex, 0);
 
     // projection * view * model
     glm::mat4 mvp = buildMatrix();
@@ -176,6 +206,8 @@ int main() {
 
     // Get the id for the uniform variable "mvpMatrix"
  	mvpMatrix = glGetUniformLocation(program, "mvpMatrix");
+
+    LoadTexture();
 
     LoadCube(program);
 
