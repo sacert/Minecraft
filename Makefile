@@ -6,8 +6,8 @@ run: all
 clean:
 	rm *.o
 
-main: main.o shader.o texture.o bitmap.o 
-	g++ main.o shader.o texture.o bitmap.o -o main -lGLEW -lglfw -framework OpenGL 
+main: main.o shader.o texture.o bitmap.o camera.o
+	g++ main.o shader.o texture.o bitmap.o camera.o -o main -lGLEW -lglfw -framework OpenGL 
 
 main.o: main.cpp
 	g++ -c -o main.o main.cpp
@@ -20,4 +20,7 @@ texture.o: texture.cpp texture.hpp
 
 bitmap.o: bitmap.cpp bitmap.hpp
 	g++ -c -o bitmap.o bitmap.cpp
+
+camera.o: camera.cpp camera.hpp
+	g++ -c -o camera.o camera.cpp
 	

@@ -1,6 +1,7 @@
 // Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
 
 // Include GLEW. Always include it before gl.h and glfw.h, since it's a bit magic.
 #include <GL/glew.h>
@@ -16,14 +17,20 @@
 #include "shader.hpp"
 #include "texture.hpp"
 #include "bitmap.hpp"
+#include "camera.hpp"
+
+// constants
+const glm::vec2 SCREEN_SIZE(800, 600);
 
 GLuint gVAO = 0;
 GLuint gVBO = 0;
 GLuint gElements = 0;
 GLFWwindow* window;
 GLint mvpMatrix;
+GLint cameraMatrix;
 GLint tex;
 Texture* gTexture = NULL;
+Camera gCamera;
 
 void LoadTexture() {
     Bitmap bmp = Bitmap::bitmapFromFile("texture.png");
@@ -52,8 +59,8 @@ glm::mat4 buildMatrix()
  }
 
 #define N 0.0625
-#define width (0.0625 * 15)
-#define height (0.0625 * 0)
+#define width (0.0625 * 2)
+#define height (0.0625 * 15)
 
 void LoadCube(GLuint program) {
     // Vertex Array Object
@@ -147,6 +154,29 @@ void LoadCube(GLuint program) {
     glBindVertexArray(0);
 }
 
+void Update(float secondsElapsed) {
+    
+    //move position of camera based on WASD keys
+    const float moveSpeed = 2.0; //units per second
+    if(glfwGetKey(window, 'S')){
+        gCamera.offsetPosition(secondsElapsed * moveSpeed * -gCamera.forward());
+    } else if(glfwGetKey(window, 'W')){
+        gCamera.offsetPosition(secondsElapsed * moveSpeed * gCamera.forward());
+    }
+    if(glfwGetKey(window, 'A')){
+        gCamera.offsetPosition(secondsElapsed * moveSpeed * -gCamera.right());
+    } else if(glfwGetKey(window, 'D')){
+        gCamera.offsetPosition(secondsElapsed * moveSpeed * gCamera.right());
+    }
+
+    //rotate camera based on mouse movement
+    const float mouseSensitivity = 0.1f;
+    double mouseX, mouseY;
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+    gCamera.offsetOrientation(mouseSensitivity * (float)mouseY, mouseSensitivity * (float)mouseX);
+    glfwSetCursorPos(window, 0, 0); //reset the mouse, so it doesn't go out of the window
+}
+
 // draws a single frame
 void Render(GLuint program) {
     // clear everything
@@ -164,12 +194,21 @@ void Render(GLuint program) {
     glUniform1i(tex, 0);
 
     // projection * view * model
-    glm::mat4 mvp = buildMatrix();
+    // glm::mat4 mvp = buildMatrix();
+ 	// glUniformMatrix4fv(
+ 	// 	mvpMatrix,	// Id of this uniform variable
+ 	// 	1,			// Number of matrices
+ 	// 	GL_FALSE,	// Transpose
+ 	// 	&mvp[0][0]	// The location of the data
+ 	// );
+
+    cameraMatrix = glGetUniformLocation(program, "camera");
+    glm::mat4 cameraView = gCamera.matrix();
  	glUniformMatrix4fv(
- 		mvpMatrix,	// Id of this uniform variable
+ 		cameraMatrix,	// Id of this uniform variable
  		1,			// Number of matrices
  		GL_FALSE,	// Transpose
- 		&mvp[0][0]	// The location of the data
+ 		&cameraView[0][0]	// The location of the data
  	);
         
     // bind the VAO (the triangle)
@@ -204,7 +243,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
     
     // Open a window and create its OpenGL context
-    window = glfwCreateWindow( 800, 600, "Minecraft", NULL, NULL);
+    window = glfwCreateWindow( SCREEN_SIZE.x, SCREEN_SIZE.y, "Minecraft", NULL, NULL);
     if( window == NULL ){
         fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
         glfwTerminate();
@@ -216,6 +255,10 @@ int main() {
         fprintf(stderr, "Failed to initialize GLEW\n");
         return -1;
     }
+
+    // GLFW settings
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPos(window, 0, 0);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -232,14 +275,31 @@ int main() {
 
     LoadCube(program);
 
-    do {
+    // setup gCamera
+    gCamera.setPosition(glm::vec3(0,0,4));
+    gCamera.setViewportAspectRatio(SCREEN_SIZE.x / SCREEN_SIZE.y);
 
+    double lastTime = glfwGetTime();
+    while(!glfwWindowShouldClose(window)){
+
+        double thisTime = glfwGetTime();
+        Update((float)(thisTime - lastTime));
+        lastTime = thisTime;
+
+        // draw one frame
         Render(program);
         glfwPollEvents();
 
-    } // Check if the ESC key was pressed or the window was closed
-    while ( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
-    glfwWindowShouldClose(window) == 0 );
+        // check for errors
+        GLenum error = glGetError();
+        if(error != GL_NO_ERROR)
+            std::cerr << "OpenGL Error " << error << std::endl;
+
+        //exit program if escape key is pressed
+        if(glfwGetKey(window, GLFW_KEY_ESCAPE))
+            glfwSetWindowShouldClose(window, GL_TRUE);
+
+    } 
     
     return 0;
 }

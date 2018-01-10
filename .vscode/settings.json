@@ -3,6 +3,8 @@
         "stdexcept": "cpp",
         "fstream": "cpp",
         "iosfwd": "cpp",
-        "ios": "cpp"
+        "ios": "cpp",
+        "locale": "cpp",
+        "sstream": "cpp"
     }
 }
