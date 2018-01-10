@@ -34,7 +34,7 @@ Camera gCamera;
 
 void LoadTexture() {
     Bitmap bmp = Bitmap::bitmapFromFile("texture.png");
-    bmp.flipVertically();
+    //bmp.flipVertically();
     gTexture = new Texture(bmp);
 }
 
@@ -58,9 +58,9 @@ glm::mat4 buildMatrix()
  	return projection * view * model;
  }
 
-#define N 0.0625
-#define width (0.0625 * 2)
-#define height (0.0625 * 15)
+#define N -0.0625
+#define width 1-(0.0625 * 13)
+#define height 1-(0.0625 * 15)
 
 void LoadCube(GLuint program) {
     // Vertex Array Object
@@ -107,20 +107,20 @@ void LoadCube(GLuint program) {
         1.0f, 1.0f,-1.0f,   width+N, height+N,
 
         // left
-        -1.0f,-1.0f, 1.0f,   width, height+N,
-        -1.0f, 1.0f,-1.0f,   width+N, height,
-        -1.0f,-1.0f,-1.0f,   width, height,
-        -1.0f,-1.0f, 1.0f,   width, height+N,
-        -1.0f, 1.0f, 1.0f,   width+N, height+N,
-        -1.0f, 1.0f,-1.0f,   width+N, height,
+        -1.0f,-1.0f, 1.0f,   width, height,
+        -1.0f, 1.0f,-1.0f,   width+N, height+N,
+        -1.0f,-1.0f,-1.0f,   width+N, height,
+        -1.0f,-1.0f, 1.0f,   width, height,
+        -1.0f, 1.0f, 1.0f,   width, height+N,
+        -1.0f, 1.0f,-1.0f,   width+N, height+N,
 
         // right
-        1.0f,-1.0f, 1.0f,   width+N, height+N,
-        1.0f,-1.0f,-1.0f,   width+N, height,
-        1.0f, 1.0f,-1.0f,   width, height,
-        1.0f,-1.0f, 1.0f,   width+N, height+N,
-        1.0f, 1.0f,-1.0f,   width, height,
-        1.0f, 1.0f, 1.0f,   width, height+N
+        1.0f,-1.0f, 1.0f,   width+N, height,
+        1.0f,-1.0f,-1.0f,   width, height,
+        1.0f, 1.0f ,1.0f,   width+N, height+N,
+        1.0f,-1.0f, -1.0f,   width, height,
+        1.0f, 1.0f,-1.0f,   width, height+N,
+        1.0f, 1.0f, 1.0f,   width+N, height+N
 
     };
 
@@ -276,7 +276,7 @@ int main() {
     LoadCube(program);
 
     // setup gCamera
-    gCamera.setPosition(glm::vec3(0,0,4));
+    gCamera.setPosition(glm::vec3(4,3,3));
     gCamera.setViewportAspectRatio(SCREEN_SIZE.x / SCREEN_SIZE.y);
 
     double lastTime = glfwGetTime();
