@@ -32,35 +32,16 @@ GLint tex;
 Texture* gTexture = NULL;
 Camera gCamera;
 
+// for testing -- to delete after
+#define N -0.0625
+#define width 1-(0.0625 * 13)
+#define height 1-(0.0625 * 15)
+
 void LoadTexture() {
     Bitmap bmp = Bitmap::bitmapFromFile("texture.png");
     //bmp.flipVertically();
     gTexture = new Texture(bmp);
 }
-
-glm::mat4 buildMatrix()
- {
- 	glm::mat4 projection = glm::perspective(
- 		45.0f,		// Field of view
- 		4.0f / 3.0f, // Aspect ratio
- 		0.1f,		// Near clipping plane
- 		100.0f		// Far clipping plane
- 	);
- 
- 	glm::mat4 view = glm::lookAt(
- 		glm::vec3(-4, 3, 3),	// Camera location in world coordinates
- 		glm::vec3(0, 0, 0),	// Looking at the origin
- 		glm::vec3(0, 1, 0)	// Camera up vector
- 	);
- 
- 	glm::mat4 model = glm::mat4(1.0f);
- 
- 	return projection * view * model;
- }
-
-#define N -0.0625
-#define width 1-(0.0625 * 13)
-#define height 1-(0.0625 * 15)
 
 void LoadCube(GLuint program) {
     // Vertex Array Object
@@ -192,15 +173,6 @@ void Render(GLuint program) {
     // Get the id for the uniform variable "tex"
  	tex = glGetUniformLocation(program, "tex");
     glUniform1i(tex, 0);
-
-    // projection * view * model
-    // glm::mat4 mvp = buildMatrix();
- 	// glUniformMatrix4fv(
- 	// 	mvpMatrix,	// Id of this uniform variable
- 	// 	1,			// Number of matrices
- 	// 	GL_FALSE,	// Transpose
- 	// 	&mvp[0][0]	// The location of the data
- 	// );
 
     cameraMatrix = glGetUniformLocation(program, "camera");
     glm::mat4 cameraView = gCamera.matrix();
