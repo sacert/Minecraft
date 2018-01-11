@@ -1,7 +1,6 @@
 #version 330 core
 
 uniform mat4 camera;
-//uniform mat4 mvpMatrix;
 
 in vec3 vert;
 in vec2 vertTexCoord;

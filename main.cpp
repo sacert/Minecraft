@@ -19,32 +19,99 @@
 #include "bitmap.hpp"
 #include "camera.hpp"
 
+#define N -0.0625   // normalized size of each block in texture file - negative for opengl
+#define TEXCOORDY(Y) (1-(0.0625 * Y))    // corrected way to find y coordinates of texture file
+#define TEXCOORDX(X) (0.0625 * X)    // corrected way to find x coordinates of texture file
+
 // constants
 const glm::vec2 SCREEN_SIZE(800, 600);
 
+// globals - clean up in future
 GLuint gVAO = 0;
 GLuint gVBO = 0;
 GLuint gElements = 0;
-GLFWwindow* window;
-GLint mvpMatrix;
+GLFWwindow* gWindow;
 GLint cameraMatrix;
 GLint tex;
 Texture* gTexture = NULL;
 Camera gCamera;
 
-// for testing -- to delete after
-#define N -0.0625
-#define width 1-(0.0625 * 13)
-#define height 1-(0.0625 * 15)
-
+// Textures are flipped vertically due to how opengl reads them
 void LoadTexture() {
     Bitmap bmp = Bitmap::bitmapFromFile("texture.png");
-    //bmp.flipVertically();
     gTexture = new Texture(bmp);
 }
 
-void LoadCube(GLuint program) {
-    // Vertex Array Object
+// Create the block buffer where the parameters are UV coordinates, allowing for different textures on each side of the block
+void createBlockBuffer(GLfloat g_vertex_buffer_data[], int front_x, int front_y, int back_x, int back_y, int right_x, int right_y, 
+    int left_x, int left_y, int top_x, int top_y, int bottom_x, int bottom_y) {
+
+    // An array of for the block vertices 
+    static const GLfloat vertex_buffer_data[] = {
+        //  X     Y     Z       U     V
+        // bottom
+        -1.0f,-1.0f,-1.0f,   TEXCOORDX(bottom_x),  TEXCOORDY(bottom_y),
+         1.0f,-1.0f,-1.0f,   TEXCOORDX(bottom_x)+N,TEXCOORDY(bottom_y),
+        -1.0f,-1.0f, 1.0f,   TEXCOORDX(bottom_x),  TEXCOORDY(bottom_y)+N,
+         1.0f,-1.0f,-1.0f,   TEXCOORDX(bottom_x)+N,TEXCOORDY(bottom_y),
+         1.0f,-1.0f, 1.0f,   TEXCOORDX(bottom_x)+N,TEXCOORDY(bottom_y)+N,
+        -1.0f,-1.0f, 1.0f,   TEXCOORDX(bottom_x),  TEXCOORDY(bottom_y)+N,
+
+        // top
+        -1.0f, 1.0f,-1.0f,   TEXCOORDX(top_x),  TEXCOORDY(top_y),
+        -1.0f, 1.0f, 1.0f,   TEXCOORDX(top_x),  TEXCOORDY(top_y)+N,
+         1.0f, 1.0f,-1.0f,   TEXCOORDX(top_x)+N,TEXCOORDY(top_y),
+         1.0f, 1.0f,-1.0f,   TEXCOORDX(top_x)+N,TEXCOORDY(top_y),
+        -1.0f, 1.0f, 1.0f,   TEXCOORDX(top_x),  TEXCOORDY(top_y)+N,
+         1.0f, 1.0f, 1.0f,   TEXCOORDX(top_x)+N,TEXCOORDY(top_y)+N,
+
+        // front
+        -1.0f,-1.0f, 1.0f,   TEXCOORDX(front_x)+N,TEXCOORDY(front_y),
+         1.0f,-1.0f, 1.0f,   TEXCOORDX(front_x),  TEXCOORDY(front_y),
+        -1.0f, 1.0f, 1.0f,   TEXCOORDX(front_x)+N,TEXCOORDY(front_y)+N,
+         1.0f,-1.0f, 1.0f,   TEXCOORDX(front_x),  TEXCOORDY(front_y),
+         1.0f, 1.0f, 1.0f,   TEXCOORDX(front_x),  TEXCOORDY(front_y)+N,
+        -1.0f, 1.0f, 1.0f,   TEXCOORDX(front_x)+N,TEXCOORDY(front_y)+N,
+
+        // back
+        -1.0f,-1.0f,-1.0f,   TEXCOORDX(back_x),  TEXCOORDY(back_y),
+        -1.0f, 1.0f,-1.0f,   TEXCOORDX(back_x),  TEXCOORDY(back_y)+N,
+         1.0f,-1.0f,-1.0f,   TEXCOORDX(back_x)+N,TEXCOORDY(back_y),
+         1.0f,-1.0f,-1.0f,   TEXCOORDX(back_x)+N,TEXCOORDY(back_y),
+        -1.0f, 1.0f,-1.0f,   TEXCOORDX(back_x),  TEXCOORDY(back_y)+N,
+         1.0f, 1.0f,-1.0f,   TEXCOORDX(back_x)+N,TEXCOORDY(back_y)+N,
+
+        // left
+        -1.0f,-1.0f, 1.0f,   TEXCOORDX(left_x),  TEXCOORDY(left_y),
+        -1.0f, 1.0f,-1.0f,   TEXCOORDX(left_x)+N,TEXCOORDY(left_y)+N,
+        -1.0f,-1.0f,-1.0f,   TEXCOORDX(left_x)+N,TEXCOORDY(left_y),
+        -1.0f,-1.0f, 1.0f,   TEXCOORDX(left_x),  TEXCOORDY(left_y),
+        -1.0f, 1.0f, 1.0f,   TEXCOORDX(left_x),  TEXCOORDY(left_y)+N,
+        -1.0f, 1.0f,-1.0f,   TEXCOORDX(left_x)+N,TEXCOORDY(left_y)+N,
+
+        // right
+        1.0f,-1.0f, 1.0f,   TEXCOORDX(right_x)+N,TEXCOORDY(right_y),
+        1.0f,-1.0f,-1.0f,   TEXCOORDX(right_x),  TEXCOORDY(right_y),
+        1.0f, 1.0f, 1.0f,   TEXCOORDX(right_x)+N,TEXCOORDY(right_y)+N,
+        1.0f,-1.0f,-1.0f,   TEXCOORDX(right_x),  TEXCOORDY(right_y),
+        1.0f, 1.0f,-1.0f,   TEXCOORDX(right_x),  TEXCOORDY(right_y)+N,
+        1.0f, 1.0f, 1.0f,   TEXCOORDX(right_x)+N,TEXCOORDY(right_y)+N
+
+    };
+
+    std::copy(vertex_buffer_data, vertex_buffer_data+180, g_vertex_buffer_data);
+}
+
+// Create the block where all sides are the same texture
+void createBlockBuffer(GLfloat g_vertex_buffer_data[], int x, int y) {
+
+    createBlockBuffer(g_vertex_buffer_data, x, y, x, y, x, y, x, y, x, y, x, y);
+}
+
+void LoadBlock(GLuint program) {
+
+    // Vertex Array Object - will cause everything underneath to be bound to the BAO
+    // Makes it so you can just bind VAO and all corresponding will be loaded as well
 	glGenVertexArrays(1, &gVAO);
 	glBindVertexArray(gVAO);
 
@@ -52,82 +119,37 @@ void LoadCube(GLuint program) {
     glGenBuffers(1, &gVBO);
     glBindBuffer(GL_ARRAY_BUFFER, gVBO);
 
-    // An array of 3 vectors which represents 3 vertices
-    static const GLfloat g_vertex_buffer_data[] = {
-        //  X     Y     Z       U     V
-        // bottom
-        -1.0f,-1.0f,-1.0f,   width, height,
-        1.0f,-1.0f,-1.0f,   width+N, height,
-        -1.0f,-1.0f, 1.0f,   width, height+N,
-        1.0f,-1.0f,-1.0f,   width+N, height,
-        1.0f,-1.0f, 1.0f,   width+N, height+N,
-        -1.0f,-1.0f, 1.0f,   width, height+N,
-
-        // top
-        -1.0f, 1.0f,-1.0f,   width, height,
-        -1.0f, 1.0f, 1.0f,   width, height+N,
-        1.0f, 1.0f,-1.0f,   width+N, height,
-        1.0f, 1.0f,-1.0f,   width+N, height,
-        -1.0f, 1.0f, 1.0f,   width, height+N,
-        1.0f, 1.0f, 1.0f,   width+N, height+N,
-
-        // front
-        -1.0f,-1.0f, 1.0f,   width+N, height,
-        1.0f,-1.0f, 1.0f,   width, height,
-        -1.0f, 1.0f, 1.0f,   width+N, height+N,
-        1.0f,-1.0f, 1.0f,   width, height,
-        1.0f, 1.0f, 1.0f,   width, height+N,
-        -1.0f, 1.0f, 1.0f,   width+N, height+N,
-
-        // back
-        -1.0f,-1.0f,-1.0f,   width, height,
-        -1.0f, 1.0f,-1.0f,   width, height+N,
-        1.0f,-1.0f,-1.0f,   width+N, height,
-        1.0f,-1.0f,-1.0f,   width+N, height,
-        -1.0f, 1.0f,-1.0f,   width, height+N,
-        1.0f, 1.0f,-1.0f,   width+N, height+N,
-
-        // left
-        -1.0f,-1.0f, 1.0f,   width, height,
-        -1.0f, 1.0f,-1.0f,   width+N, height+N,
-        -1.0f,-1.0f,-1.0f,   width+N, height,
-        -1.0f,-1.0f, 1.0f,   width, height,
-        -1.0f, 1.0f, 1.0f,   width, height+N,
-        -1.0f, 1.0f,-1.0f,   width+N, height+N,
-
-        // right
-        1.0f,-1.0f, 1.0f,   width+N, height,
-        1.0f,-1.0f,-1.0f,   width, height,
-        1.0f, 1.0f ,1.0f,   width+N, height+N,
-        1.0f,-1.0f, -1.0f,   width, height,
-        1.0f, 1.0f,-1.0f,   width, height+N,
-        1.0f, 1.0f, 1.0f,   width+N, height+N
-
-    };
+    // An array of for the block vertices 
+    GLfloat g_vertex_buffer_data[180];
+    createBlockBuffer(g_vertex_buffer_data,3,15);
 
     // Give our vertices to OpenGL.
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
-    GLuint iVert = glGetAttribLocation(program, "vert");
-    glEnableVertexAttribArray(iVert);
+    // Set the variable 'vert' in vertex shader 
+    // Equals to the vertices for the block
+    GLuint gVert = glGetAttribLocation(program, "vert");
+    glEnableVertexAttribArray(gVert);
     glVertexAttribPointer(
-        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+        0,                  // attribute 0
         3,                  // size
         GL_FLOAT,           // type
         GL_FALSE,           // normalized?
-        5*sizeof(GLfloat),                  // stride
+        5*sizeof(GLfloat),  // stride
         (void*)0            // array buffer offset
     );
 
-    GLuint ivertTexCoord = glGetAttribLocation(program, "vertTexCoord");
-    glEnableVertexAttribArray(ivertTexCoord);
+    // Set the variable 'vertTexCoord' in vertex shader 
+    // Equals to the UV values for corresponding vertices to the block
+    GLuint gVertTexCoord = glGetAttribLocation(program, "vertTexCoord");
+    glEnableVertexAttribArray(gVertTexCoord);
     glVertexAttribPointer(
-        1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+        1,                  // attribute 1
         2,                  // size
         GL_FLOAT,           // type
         GL_FALSE,           // normalized?
-        5*sizeof(GLfloat),                  // stride
-        (const GLvoid*)(3 * sizeof(GLfloat))         // array buffer offset
+        5*sizeof(GLfloat),  // stride
+        (const GLvoid*)(3 * sizeof(GLfloat))    // array buffer offset
     );
 
     // unbind VAO and VBO 
@@ -139,47 +161,49 @@ void Update(float secondsElapsed) {
     
     //move position of camera based on WASD keys
     const float moveSpeed = 2.0; //units per second
-    if(glfwGetKey(window, 'S')){
+    if(glfwGetKey(gWindow, 'S')){
         gCamera.offsetPosition(secondsElapsed * moveSpeed * -gCamera.forward());
-    } else if(glfwGetKey(window, 'W')){
+    } else if(glfwGetKey(gWindow, 'W')){
         gCamera.offsetPosition(secondsElapsed * moveSpeed * gCamera.forward());
     }
-    if(glfwGetKey(window, 'A')){
+    if(glfwGetKey(gWindow, 'A')){
         gCamera.offsetPosition(secondsElapsed * moveSpeed * -gCamera.right());
-    } else if(glfwGetKey(window, 'D')){
+    } else if(glfwGetKey(gWindow, 'D')){
         gCamera.offsetPosition(secondsElapsed * moveSpeed * gCamera.right());
     }
 
     //rotate camera based on mouse movement
     const float mouseSensitivity = 0.1f;
     double mouseX, mouseY;
-    glfwGetCursorPos(window, &mouseX, &mouseY);
+    glfwGetCursorPos(gWindow, &mouseX, &mouseY);
     gCamera.offsetOrientation(mouseSensitivity * (float)mouseY, mouseSensitivity * (float)mouseX);
-    glfwSetCursorPos(window, 0, 0); //reset the mouse, so it doesn't go out of the window
+    glfwSetCursorPos(gWindow, 0, 0); //reset the mouse, so it doesn't go out of the window
 }
 
 // draws a single frame
-void Render(GLuint program) {
+void Render(GLuint gProgram) {
+
     // clear everything
     glClearColor(0, 0, 0, 1); // black
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     // bind the program (the shaders)
-    glUseProgram(program);
+    glUseProgram(gProgram);
 
-    // bind the texture and set the "tex" uniform in the fragment shader
+    // bind the texture and set the "tex" uniform in the fragment shader -- *** could I potentially just bind once since I'm only using 1 texture file? ***
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, gTexture->object());
     // Get the id for the uniform variable "tex"
- 	tex = glGetUniformLocation(program, "tex");
+ 	tex = glGetUniformLocation(gProgram, "tex");
     glUniform1i(tex, 0);
 
-    cameraMatrix = glGetUniformLocation(program, "camera");
+    // set up the camera
+    cameraMatrix = glGetUniformLocation(gProgram, "camera");
     glm::mat4 cameraView = gCamera.matrix();
  	glUniformMatrix4fv(
  		cameraMatrix,	// Id of this uniform variable
- 		1,			// Number of matrices
- 		GL_FALSE,	// Transpose
+ 		1,			    // Number of matrices
+ 		GL_FALSE,	    // Transpose
  		&cameraView[0][0]	// The location of the data
  	);
         
@@ -196,7 +220,7 @@ void Render(GLuint program) {
     glUseProgram(0);
     
     // swap the display buffers (displays what was just drawn)
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(gWindow);
 }
 
 int main() {
@@ -215,13 +239,13 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
     
     // Open a window and create its OpenGL context
-    window = glfwCreateWindow( SCREEN_SIZE.x, SCREEN_SIZE.y, "Minecraft", NULL, NULL);
-    if( window == NULL ){
+    gWindow = glfwCreateWindow( SCREEN_SIZE.x, SCREEN_SIZE.y, "Minecraft", NULL, NULL);
+    if( gWindow == NULL ){
         fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
         glfwTerminate();
         return -1;
     }
-    glfwMakeContextCurrent(window); // Initialize GLEW
+    glfwMakeContextCurrent(gWindow); // Initialize GLEW
     glewExperimental=1; // Needed in core profile
     if (glewInit() != GLEW_OK) {
         fprintf(stderr, "Failed to initialize GLEW\n");
@@ -229,37 +253,36 @@ int main() {
     }
 
     // GLFW settings
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPos(window, 0, 0);
+    glfwSetInputMode(gWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPos(gWindow, 0, 0);
 
+    // Makes sure textures factor in depth when being loaded
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
 
     // Ensure we can capture the escape key being pressed below
-    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetInputMode(gWindow, GLFW_STICKY_KEYS, GL_TRUE);
 
-    GLuint program = LoadShaders( "SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader" );
-
-    // Get the id for the uniform variable "mvpMatrix"
- 	mvpMatrix = glGetUniformLocation(program, "mvpMatrix");
+    // Load block shaders
+    GLuint gProgram = LoadShaders( "block_vertex.glsl", "block_fragment.glsl" );
 
     LoadTexture();
 
-    LoadCube(program);
+    LoadBlock(gProgram);
 
-    // setup gCamera
-    gCamera.setPosition(glm::vec3(4,3,3));
+    // Setup gCamera
+    gCamera.setPosition(glm::vec3(0,10,0));
     gCamera.setViewportAspectRatio(SCREEN_SIZE.x / SCREEN_SIZE.y);
 
     double lastTime = glfwGetTime();
-    while(!glfwWindowShouldClose(window)){
+    while(!glfwWindowShouldClose(gWindow)){
 
         double thisTime = glfwGetTime();
         Update((float)(thisTime - lastTime));
         lastTime = thisTime;
 
         // draw one frame
-        Render(program);
+        Render(gProgram);
         glfwPollEvents();
 
         // check for errors
@@ -268,8 +291,8 @@ int main() {
             std::cerr << "OpenGL Error " << error << std::endl;
 
         //exit program if escape key is pressed
-        if(glfwGetKey(window, GLFW_KEY_ESCAPE))
-            glfwSetWindowShouldClose(window, GL_TRUE);
+        if(glfwGetKey(gWindow, GLFW_KEY_ESCAPE))
+            glfwSetWindowShouldClose(gWindow, GL_TRUE);
 
     } 
     
