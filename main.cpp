@@ -179,15 +179,20 @@ void LoadGrassBlock() {
 }
 
 void CreateInstance() {
-    BlockInstance block;
-    block.asset = &gGrassBlock;
-    block.position = glm::mat4();
-    gInstances.push_back(block);
 
-    BlockInstance block1;
-    block1.asset = &gGrassBlock;
-    block1.position = glm::translate(glm::mat4(1.0f),glm::vec3(2,0,0));
-    gInstances.push_back(block1);
+    // testing 
+
+    // 10x10x3 block of dirt
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            for (int k = 0; k < 3; k++) {
+                BlockInstance block;
+                block.asset = &gGrassBlock;
+                block.position = glm::translate(glm::mat4(1.0f),glm::vec3(j*2,k*2,i*2));
+                gInstances.push_back(block);
+            }
+        }
+    }
 }
 
 void Update(float secondsElapsed) {
