@@ -5,6 +5,10 @@
         "iosfwd": "cpp",
         "ios": "cpp",
         "locale": "cpp",
-        "sstream": "cpp"
+        "sstream": "cpp",
+        "iterator": "cpp",
+        "string": "cpp",
+        "string_view": "cpp",
+        "vector": "cpp"
     }
 }

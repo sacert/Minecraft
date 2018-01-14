@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <list>
 
 // Include GLEW. Always include it before gl.h and glfw.h, since it's a bit magic.
 #include <GL/glew.h>
@@ -23,23 +24,34 @@
 #define TEXCOORDY(Y) (1-(0.0625 * Y))    // corrected way to find y coordinates of texture file
 #define TEXCOORDX(X) (0.0625 * X)    // corrected way to find x coordinates of texture file
 
+struct BlockAsset {
+    GLint shaders;
+    Texture* texture;
+    GLuint vbo;
+    GLuint vao;
+    GLenum drawType;
+    GLint drawStart;
+    GLint drawCount;
+};
+
+struct BlockInstance {
+    BlockAsset* asset;
+    glm::mat4 position;
+};
+
 // constants
 const glm::vec2 SCREEN_SIZE(800, 600);
 
 // globals - clean up in future
-GLuint gVAO = 0;
-GLuint gVBO = 0;
-GLuint gElements = 0;
+BlockAsset gGrassBlock;
+std::list<BlockInstance> gInstances;
 GLFWwindow* gWindow;
-GLint cameraMatrix;
-GLint tex;
-Texture* gTexture = NULL;
 Camera gCamera;
 
 // Textures are flipped vertically due to how opengl reads them
-void LoadTexture() {
+Texture* LoadTexture() {
     Bitmap bmp = Bitmap::bitmapFromFile("texture.png");
-    gTexture = new Texture(bmp);
+    return new Texture(bmp);
 }
 
 // Create the block buffer where the parameters are UV coordinates, allowing for different textures on each side of the block
@@ -108,16 +120,25 @@ void createBlockBuffer(GLfloat g_vertex_buffer_data[], int x, int y) {
     createBlockBuffer(g_vertex_buffer_data, x, y, x, y, x, y, x, y, x, y, x, y);
 }
 
-void LoadBlock(GLuint program) {
+void LoadGrassBlock() {
+
+    // set all the elements of gGrassBlock
+    gGrassBlock.shaders = LoadShaders( "block_vertex.glsl", "block_fragment.glsl" );
+    gGrassBlock.drawType = GL_TRIANGLES;
+    gGrassBlock.drawStart = 0;
+    gGrassBlock.drawCount = 6*2*3;
+    gGrassBlock.texture = LoadTexture();
+    glGenBuffers(1, &gGrassBlock.vbo);
+    glGenVertexArrays(1, &gGrassBlock.vao);
 
     // Vertex Array Object - will cause everything underneath to be bound to the BAO
     // Makes it so you can just bind VAO and all corresponding will be loaded as well
-	glGenVertexArrays(1, &gVAO);
-	glBindVertexArray(gVAO);
+	glGenVertexArrays(1, &gGrassBlock.vao);
+	glBindVertexArray(gGrassBlock.vao);
 
     // Vertex Buffer Object
-    glGenBuffers(1, &gVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, gVBO);
+    glGenBuffers(1, &gGrassBlock.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, gGrassBlock.vbo);
 
     // An array of for the block vertices 
     GLfloat g_vertex_buffer_data[180];
@@ -128,7 +149,7 @@ void LoadBlock(GLuint program) {
 
     // Set the variable 'vert' in vertex shader 
     // Equals to the vertices for the block
-    GLuint gVert = glGetAttribLocation(program, "vert");
+    GLuint gVert = glGetAttribLocation(gGrassBlock.shaders, "vert");
     glEnableVertexAttribArray(gVert);
     glVertexAttribPointer(
         0,                  // attribute 0
@@ -141,7 +162,7 @@ void LoadBlock(GLuint program) {
 
     // Set the variable 'vertTexCoord' in vertex shader 
     // Equals to the UV values for corresponding vertices to the block
-    GLuint gVertTexCoord = glGetAttribLocation(program, "vertTexCoord");
+    GLuint gVertTexCoord = glGetAttribLocation(gGrassBlock.shaders, "vertTexCoord");
     glEnableVertexAttribArray(gVertTexCoord);
     glVertexAttribPointer(
         1,                  // attribute 1
@@ -155,6 +176,18 @@ void LoadBlock(GLuint program) {
     // unbind VAO and VBO 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+}
+
+void CreateInstance() {
+    BlockInstance block;
+    block.asset = &gGrassBlock;
+    block.position = glm::mat4();
+    gInstances.push_back(block);
+
+    BlockInstance block1;
+    block1.asset = &gGrassBlock;
+    block1.position = glm::translate(glm::mat4(1.0f),glm::vec3(2,0,0));
+    gInstances.push_back(block1);
 }
 
 void Update(float secondsElapsed) {
@@ -180,25 +213,31 @@ void Update(float secondsElapsed) {
     glfwSetCursorPos(gWindow, 0, 0); //reset the mouse, so it doesn't go out of the window
 }
 
-// draws a single frame
-void Render(GLuint gProgram) {
+void RenderInstances (const BlockInstance& inst) {
 
-    // clear everything
-    glClearColor(0, 0, 0, 1); // black
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    
+    BlockAsset* asset = inst.asset;
     // bind the program (the shaders)
-    glUseProgram(gProgram);
+    glUseProgram(asset->shaders);
 
     // bind the texture and set the "tex" uniform in the fragment shader -- *** could I potentially just bind once since I'm only using 1 texture file? ***
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gTexture->object());
+    glBindTexture(GL_TEXTURE_2D, asset->texture->object());
     // Get the id for the uniform variable "tex"
- 	tex = glGetUniformLocation(gProgram, "tex");
+    GLint tex = glGetUniformLocation(asset->shaders, "tex");
     glUniform1i(tex, 0);
 
+    // move block to correct position
+    GLint model = glGetUniformLocation(asset->shaders, "model");
+    glm::mat4 modelPosition = inst.position;
+    glUniformMatrix4fv(
+ 		model,	// Id of this uniform variable
+ 		1,			    // Number of matrices
+ 		GL_FALSE,	    // Transpose
+ 		&modelPosition[0][0]	// The location of the data
+ 	);
+
     // set up the camera
-    cameraMatrix = glGetUniformLocation(gProgram, "camera");
+    GLint cameraMatrix = glGetUniformLocation(asset->shaders, "camera");
     glm::mat4 cameraView = gCamera.matrix();
  	glUniformMatrix4fv(
  		cameraMatrix,	// Id of this uniform variable
@@ -208,7 +247,7 @@ void Render(GLuint gProgram) {
  	);
         
     // bind the VAO (the triangle)
-    glBindVertexArray(gVAO);
+    glBindVertexArray(asset->vao);
 
     // draw the triangles 
     glDrawArrays(GL_TRIANGLES, 0, 3*2*6);
@@ -218,9 +257,25 @@ void Render(GLuint gProgram) {
     
     // unbind the program
     glUseProgram(0);
+
+}
+
+// draws a single frame
+void Render() {
+
+    // clear everything
+    glClearColor(1, 1, 1, 1); // black
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // render all instances
+    std::list<BlockInstance>::const_iterator it;
+    for (it = gInstances.begin(); it != gInstances.end(); ++it) {
+        RenderInstances(*it);
+    }
     
     // swap the display buffers (displays what was just drawn)
     glfwSwapBuffers(gWindow);
+    
 }
 
 int main() {
@@ -263,15 +318,14 @@ int main() {
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(gWindow, GLFW_STICKY_KEYS, GL_TRUE);
 
-    // Load block shaders
-    GLuint gProgram = LoadShaders( "block_vertex.glsl", "block_fragment.glsl" );
-
     LoadTexture();
 
-    LoadBlock(gProgram);
+    LoadGrassBlock();
+
+    CreateInstance();
 
     // Setup gCamera
-    gCamera.setPosition(glm::vec3(0,10,0));
+    gCamera.setPosition(glm::vec3(0,2,-2));
     gCamera.setViewportAspectRatio(SCREEN_SIZE.x / SCREEN_SIZE.y);
 
     double lastTime = glfwGetTime();
@@ -282,7 +336,7 @@ int main() {
         lastTime = thisTime;
 
         // draw one frame
-        Render(gProgram);
+        Render();
         glfwPollEvents();
 
         // check for errors
