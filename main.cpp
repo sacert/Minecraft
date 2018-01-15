@@ -178,11 +178,13 @@ void LoadBlock(BlockAsset *block, int front_x, int front_y, int back_x, int back
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+// overload function so that it is easier to load blocks where all the sides are the same texture
 void LoadBlock(BlockAsset *block, int texture_x, int texture_y) {
     LoadBlock(block, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y);
 }
 
-void CreateInstance() {
+// world creation should be in here
+void CreateWorld() {
 
     // testing 
 
@@ -331,10 +333,11 @@ int main() {
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(gWindow, GLFW_STICKY_KEYS, GL_TRUE);
 
+    // Block Loading
     LoadBlock(&gDirtBlock, 2, 15);
     LoadBlock(&gGrassBlock, 3, 15, 3, 15, 3, 15, 3, 15, 0, 15, 3, 15);
 
-    CreateInstance();
+    CreateWorld();
 
     // Setup gCamera
     gCamera.setPosition(glm::vec3(0,2,-2));
