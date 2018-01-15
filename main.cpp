@@ -144,6 +144,8 @@ void LoadBlock(BlockAsset *block, int front_x, int front_y, int back_x, int back
     GLfloat g_vertex_buffer_data[180];
     createBlockBuffer(g_vertex_buffer_data,front_x,front_y,back_x,back_y,right_x,right_y,left_x,left_y,top_x,top_y,bottom_x,bottom_y);
 
+    std::cout << g_vertex_buffer_data[33] << " " << g_vertex_buffer_data[34] << std::endl;
+
     // Give our vertices to OpenGL.
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
