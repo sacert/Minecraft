@@ -22,7 +22,7 @@
 
 #define N -0.0625   // normalized size of each block in texture file - negative for opengl
 #define TEXCOORDY(Y) (1-(0.0625 * Y))    // corrected way to find y coordinates of texture file
-#define TEXCOORDX(X) (0.0625 * X)    // corrected way to find x coordinates of texture file
+#define TEXCOORDX(X) (0.0625+(0.0625 * X))    // corrected way to find x coordinates of texture file
 
 struct BlockAsset {
     GLint shaders;
@@ -44,6 +44,7 @@ const glm::vec2 SCREEN_SIZE(800, 600);
 
 // globals - clean up in future
 BlockAsset gGrassBlock;
+BlockAsset gDirtBlock;
 std::list<BlockInstance> gInstances;
 GLFWwindow* gWindow;
 Camera gCamera;
@@ -59,7 +60,7 @@ void createBlockBuffer(GLfloat g_vertex_buffer_data[], int front_x, int front_y,
     int left_x, int left_y, int top_x, int top_y, int bottom_x, int bottom_y) {
 
     // An array of for the block vertices 
-    static const GLfloat vertex_buffer_data[] = {
+    GLfloat vertex_buffer_data[] = {
         //  X     Y     Z       U     V
         // bottom
         -1.0f,-1.0f,-1.0f,   TEXCOORDX(bottom_x),  TEXCOORDY(bottom_y),
@@ -120,36 +121,35 @@ void createBlockBuffer(GLfloat g_vertex_buffer_data[], int x, int y) {
     createBlockBuffer(g_vertex_buffer_data, x, y, x, y, x, y, x, y, x, y, x, y);
 }
 
-void LoadGrassBlock() {
+void LoadBlock(BlockAsset *block, int front_x, int front_y, int back_x, int back_y, int right_x, int right_y, 
+    int left_x, int left_y, int top_x, int top_y, int bottom_x, int bottom_y) {
 
-    // set all the elements of gGrassBlock
-    gGrassBlock.shaders = LoadShaders( "block_vertex.glsl", "block_fragment.glsl" );
-    gGrassBlock.drawType = GL_TRIANGLES;
-    gGrassBlock.drawStart = 0;
-    gGrassBlock.drawCount = 6*2*3;
-    gGrassBlock.texture = LoadTexture();
-    glGenBuffers(1, &gGrassBlock.vbo);
-    glGenVertexArrays(1, &gGrassBlock.vao);
+    // set all the elements of block
+    block->shaders = LoadShaders( "block_vertex.glsl", "block_fragment.glsl" );
+    block->drawType = GL_TRIANGLES;
+    block->drawStart = 0;
+    block->drawCount = 6*2*3;
+    block->texture = LoadTexture();
+    glGenBuffers(1, &block->vbo);
+    glGenVertexArrays(1, &block->vao);
 
-    // Vertex Array Object - will cause everything underneath to be bound to the BAO
+    // Vertex Array Object - will cause everything underneath to be bound to the VAO
     // Makes it so you can just bind VAO and all corresponding will be loaded as well
-	glGenVertexArrays(1, &gGrassBlock.vao);
-	glBindVertexArray(gGrassBlock.vao);
+	glBindVertexArray(block->vao);
 
     // Vertex Buffer Object
-    glGenBuffers(1, &gGrassBlock.vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, gGrassBlock.vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, block->vbo);
 
     // An array of for the block vertices 
     GLfloat g_vertex_buffer_data[180];
-    createBlockBuffer(g_vertex_buffer_data,3,15);
+    createBlockBuffer(g_vertex_buffer_data,front_x,front_y,back_x,back_y,right_x,right_y,left_x,left_y,top_x,top_y,bottom_x,bottom_y);
 
     // Give our vertices to OpenGL.
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
     // Set the variable 'vert' in vertex shader 
     // Equals to the vertices for the block
-    GLuint gVert = glGetAttribLocation(gGrassBlock.shaders, "vert");
+    GLuint gVert = glGetAttribLocation(block->shaders, "vert");
     glEnableVertexAttribArray(gVert);
     glVertexAttribPointer(
         0,                  // attribute 0
@@ -162,7 +162,7 @@ void LoadGrassBlock() {
 
     // Set the variable 'vertTexCoord' in vertex shader 
     // Equals to the UV values for corresponding vertices to the block
-    GLuint gVertTexCoord = glGetAttribLocation(gGrassBlock.shaders, "vertTexCoord");
+    GLuint gVertTexCoord = glGetAttribLocation(block->shaders, "vertTexCoord");
     glEnableVertexAttribArray(gVertTexCoord);
     glVertexAttribPointer(
         1,                  // attribute 1
@@ -174,8 +174,12 @@ void LoadGrassBlock() {
     );
 
     // unbind VAO and VBO 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void LoadBlock(BlockAsset *block, int texture_x, int texture_y) {
+    LoadBlock(block, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y);
 }
 
 void CreateInstance() {
@@ -187,7 +191,11 @@ void CreateInstance() {
         for (int j = 0; j < 10; j++) {
             for (int k = 0; k < 3; k++) {
                 BlockInstance block;
-                block.asset = &gGrassBlock;
+                if (k == 2) {
+                    block.asset = &gGrassBlock;
+                } else {
+                    block.asset = &gDirtBlock;
+                }
                 block.position = glm::translate(glm::mat4(1.0f),glm::vec3(j*2,k*2,i*2));
                 gInstances.push_back(block);
             }
@@ -323,9 +331,8 @@ int main() {
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(gWindow, GLFW_STICKY_KEYS, GL_TRUE);
 
-    LoadTexture();
-
-    LoadGrassBlock();
+    LoadBlock(&gDirtBlock, 2, 15);
+    LoadBlock(&gGrassBlock, 3, 15, 3, 15, 3, 15, 3, 15, 0, 15, 3, 15);
 
     CreateInstance();
 
