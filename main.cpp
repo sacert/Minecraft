@@ -375,6 +375,9 @@ int main() {
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(gWindow, GLFW_STICKY_KEYS, GL_TRUE);
 
+    // Turn off vsync ***** LEAVE ON FOR OPTIMISATION TESTING BUT DELETE AFTER ******
+    glfwSwapInterval(0);
+
     // Block Loading
     LoadBlock(&gDirtBlock, 2, 15);
     LoadBlock(&gGrassBlock, 3, 15, 3, 15, 3, 15, 3, 15, 0, 15, 3, 15);
