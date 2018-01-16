@@ -63,51 +63,51 @@ void createBlockBuffer(GLfloat g_vertex_buffer_data[], int front_x, int front_y,
     GLfloat vertex_buffer_data[] = {
         //  X     Y     Z       U     V
         // bottom
-        -1.0f,-1.0f,-1.0f,   TEXCOORDX(bottom_x),  TEXCOORDY(bottom_y),
-         1.0f,-1.0f,-1.0f,   TEXCOORDX(bottom_x)+N,TEXCOORDY(bottom_y),
-        -1.0f,-1.0f, 1.0f,   TEXCOORDX(bottom_x),  TEXCOORDY(bottom_y)+N,
-         1.0f,-1.0f,-1.0f,   TEXCOORDX(bottom_x)+N,TEXCOORDY(bottom_y),
-         1.0f,-1.0f, 1.0f,   TEXCOORDX(bottom_x)+N,TEXCOORDY(bottom_y)+N,
-        -1.0f,-1.0f, 1.0f,   TEXCOORDX(bottom_x),  TEXCOORDY(bottom_y)+N,
+        0.0f, 0.0f, 0.0f,   TEXCOORDX(bottom_x),  TEXCOORDY(bottom_y),
+        1.0f, 0.0f, 0.0f,   TEXCOORDX(bottom_x)+N,TEXCOORDY(bottom_y),
+        0.0f, 0.0f, 1.0f,   TEXCOORDX(bottom_x),  TEXCOORDY(bottom_y)+N,
+        1.0f, 0.0f, 0.0f,   TEXCOORDX(bottom_x)+N,TEXCOORDY(bottom_y),
+        1.0f, 0.0f, 1.0f,   TEXCOORDX(bottom_x)+N,TEXCOORDY(bottom_y)+N,
+        0.0f, 0.0f, 1.0f,   TEXCOORDX(bottom_x),  TEXCOORDY(bottom_y)+N,
 
         // top
-        -1.0f, 1.0f,-1.0f,   TEXCOORDX(top_x),  TEXCOORDY(top_y),
-        -1.0f, 1.0f, 1.0f,   TEXCOORDX(top_x),  TEXCOORDY(top_y)+N,
-         1.0f, 1.0f,-1.0f,   TEXCOORDX(top_x)+N,TEXCOORDY(top_y),
-         1.0f, 1.0f,-1.0f,   TEXCOORDX(top_x)+N,TEXCOORDY(top_y),
-        -1.0f, 1.0f, 1.0f,   TEXCOORDX(top_x),  TEXCOORDY(top_y)+N,
-         1.0f, 1.0f, 1.0f,   TEXCOORDX(top_x)+N,TEXCOORDY(top_y)+N,
+        0.0f, 1.0f, 0.0f,   TEXCOORDX(top_x),  TEXCOORDY(top_y),
+        0.0f, 1.0f, 1.0f,   TEXCOORDX(top_x),  TEXCOORDY(top_y)+N,
+        1.0f, 1.0f, 0.0f,   TEXCOORDX(top_x)+N,TEXCOORDY(top_y),
+        1.0f, 1.0f, 0.0f,   TEXCOORDX(top_x)+N,TEXCOORDY(top_y),
+        0.0f, 1.0f, 1.0f,   TEXCOORDX(top_x),  TEXCOORDY(top_y)+N,
+        1.0f, 1.0f, 1.0f,   TEXCOORDX(top_x)+N,TEXCOORDY(top_y)+N,
 
         // front
-        -1.0f,-1.0f, 1.0f,   TEXCOORDX(front_x)+N,TEXCOORDY(front_y),
-         1.0f,-1.0f, 1.0f,   TEXCOORDX(front_x),  TEXCOORDY(front_y),
-        -1.0f, 1.0f, 1.0f,   TEXCOORDX(front_x)+N,TEXCOORDY(front_y)+N,
-         1.0f,-1.0f, 1.0f,   TEXCOORDX(front_x),  TEXCOORDY(front_y),
-         1.0f, 1.0f, 1.0f,   TEXCOORDX(front_x),  TEXCOORDY(front_y)+N,
-        -1.0f, 1.0f, 1.0f,   TEXCOORDX(front_x)+N,TEXCOORDY(front_y)+N,
+        0.0f, 0.0f, 1.0f,   TEXCOORDX(front_x)+N,TEXCOORDY(front_y),
+        1.0f, 0.0f, 1.0f,   TEXCOORDX(front_x),  TEXCOORDY(front_y),
+        0.0f, 1.0f, 1.0f,   TEXCOORDX(front_x)+N,TEXCOORDY(front_y)+N,
+        1.0f, 0.0f, 1.0f,   TEXCOORDX(front_x),  TEXCOORDY(front_y),
+        1.0f, 1.0f, 1.0f,   TEXCOORDX(front_x),  TEXCOORDY(front_y)+N,
+        0.0f, 1.0f, 1.0f,   TEXCOORDX(front_x)+N,TEXCOORDY(front_y)+N,
 
         // back
-        -1.0f,-1.0f,-1.0f,   TEXCOORDX(back_x),  TEXCOORDY(back_y),
-        -1.0f, 1.0f,-1.0f,   TEXCOORDX(back_x),  TEXCOORDY(back_y)+N,
-         1.0f,-1.0f,-1.0f,   TEXCOORDX(back_x)+N,TEXCOORDY(back_y),
-         1.0f,-1.0f,-1.0f,   TEXCOORDX(back_x)+N,TEXCOORDY(back_y),
-        -1.0f, 1.0f,-1.0f,   TEXCOORDX(back_x),  TEXCOORDY(back_y)+N,
-         1.0f, 1.0f,-1.0f,   TEXCOORDX(back_x)+N,TEXCOORDY(back_y)+N,
+        0.0f, 0.0f, 0.0f,   TEXCOORDX(back_x),  TEXCOORDY(back_y),
+        0.0f, 1.0f, 0.0f,   TEXCOORDX(back_x),  TEXCOORDY(back_y)+N,
+        1.0f, 0.0f, 0.0f,   TEXCOORDX(back_x)+N,TEXCOORDY(back_y),
+        1.0f, 0.0f, 0.0f,   TEXCOORDX(back_x)+N,TEXCOORDY(back_y),
+        0.0f, 1.0f, 0.0f,   TEXCOORDX(back_x),  TEXCOORDY(back_y)+N,
+        1.0f, 1.0f, 0.0f,   TEXCOORDX(back_x)+N,TEXCOORDY(back_y)+N,
 
         // left
-        -1.0f,-1.0f, 1.0f,   TEXCOORDX(left_x),  TEXCOORDY(left_y),
-        -1.0f, 1.0f,-1.0f,   TEXCOORDX(left_x)+N,TEXCOORDY(left_y)+N,
-        -1.0f,-1.0f,-1.0f,   TEXCOORDX(left_x)+N,TEXCOORDY(left_y),
-        -1.0f,-1.0f, 1.0f,   TEXCOORDX(left_x),  TEXCOORDY(left_y),
-        -1.0f, 1.0f, 1.0f,   TEXCOORDX(left_x),  TEXCOORDY(left_y)+N,
-        -1.0f, 1.0f,-1.0f,   TEXCOORDX(left_x)+N,TEXCOORDY(left_y)+N,
+        0.0f, 0.0f, 1.0f,   TEXCOORDX(left_x),  TEXCOORDY(left_y),
+        0.0f, 1.0f, 0.0f,   TEXCOORDX(left_x)+N,TEXCOORDY(left_y)+N,
+        0.0f, 0.0f, 0.0f,   TEXCOORDX(left_x)+N,TEXCOORDY(left_y),
+        0.0f, 0.0f, 1.0f,   TEXCOORDX(left_x),  TEXCOORDY(left_y),
+        0.0f, 1.0f, 1.0f,   TEXCOORDX(left_x),  TEXCOORDY(left_y)+N,
+        0.0f, 1.0f, 0.0f,   TEXCOORDX(left_x)+N,TEXCOORDY(left_y)+N,
 
         // right
-        1.0f,-1.0f, 1.0f,   TEXCOORDX(right_x)+N,TEXCOORDY(right_y),
-        1.0f,-1.0f,-1.0f,   TEXCOORDX(right_x),  TEXCOORDY(right_y),
+        1.0f, 0.0f, 1.0f,   TEXCOORDX(right_x)+N,TEXCOORDY(right_y),
+        1.0f, 0.0f, 0.0f,   TEXCOORDX(right_x),  TEXCOORDY(right_y),
         1.0f, 1.0f, 1.0f,   TEXCOORDX(right_x)+N,TEXCOORDY(right_y)+N,
-        1.0f,-1.0f,-1.0f,   TEXCOORDX(right_x),  TEXCOORDY(right_y),
-        1.0f, 1.0f,-1.0f,   TEXCOORDX(right_x),  TEXCOORDY(right_y)+N,
+        1.0f, 0.0f, 0.0f,   TEXCOORDX(right_x),  TEXCOORDY(right_y),
+        1.0f, 1.0f, 0.0f,   TEXCOORDX(right_x),  TEXCOORDY(right_y)+N,
         1.0f, 1.0f, 1.0f,   TEXCOORDX(right_x)+N,TEXCOORDY(right_y)+N
 
     };
@@ -143,8 +143,6 @@ void LoadBlock(BlockAsset *block, int front_x, int front_y, int back_x, int back
     // An array of for the block vertices 
     GLfloat g_vertex_buffer_data[180];
     createBlockBuffer(g_vertex_buffer_data,front_x,front_y,back_x,back_y,right_x,right_y,left_x,left_y,top_x,top_y,bottom_x,bottom_y);
-
-    std::cout << g_vertex_buffer_data[33] << " " << g_vertex_buffer_data[34] << std::endl;
 
     // Give our vertices to OpenGL.
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
@@ -191,16 +189,16 @@ void CreateWorld() {
     // testing 
 
     // 10x10x3 block of dirt
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 10; j++) {
-            for (int k = 0; k < 3; k++) {
+    for (int i = 0; i < 16; i++) {
+        for (int j = 0; j < 16; j++) {
+            for (int k = 0; k < 2; k++) {
                 BlockInstance block;
-                if (k == 2) {
+                if (k == 1) {
                     block.asset = &gGrassBlock;
                 } else {
                     block.asset = &gDirtBlock;
                 }
-                block.position = glm::translate(glm::mat4(1.0f),glm::vec3(j*2,k*2,i*2));
+                block.position = glm::translate(glm::mat4(1.0f),glm::vec3(j,k,i));
                 gInstances.push_back(block);
             }
         }
