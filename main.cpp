@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <list>
+#include <unordered_map>
 
 // Include GLEW. Always include it before gl.h and glfw.h, since it's a bit magic.
 #include <GL/glew.h>
@@ -39,6 +40,46 @@ struct BlockInstance {
     glm::mat4 position;
 };
 
+struct Coordinate {
+    int x;
+    int y;
+    int z;
+
+    Coordinate (int xx, int yy, int zz) {
+        x = xx;
+        y = yy;
+        z = zz;
+    }
+
+    bool operator==(const Coordinate &other) const
+    { return (x == other.x
+                && y == other.y
+                && z == other.z);
+    }
+};
+
+namespace std {
+
+  template <>
+  struct hash<Coordinate>
+  {
+    std::size_t operator()(const Coordinate& k) const
+    {
+      using std::size_t;
+      using std::hash;
+
+      // Compute individual hash values for first,
+      // second and third and combine them using XOR
+      // and bit shifting:
+
+      return ((hash<int>()(k.x)
+               ^ (hash<int>()(k.y) << 1)) >> 1)
+               ^ (hash<int>()(k.z) << 1);
+    }
+  };
+
+}
+
 // constants
 const glm::vec2 SCREEN_SIZE(800, 600);
 
@@ -48,6 +89,7 @@ BlockAsset gDirtBlock;
 std::list<BlockInstance> gInstances;
 GLFWwindow* gWindow;
 Camera gCamera;
+std::unordered_map<Coordinate, BlockInstance> map;
 
 // Textures are flipped vertically due to how opengl reads them
 Texture* LoadTexture() {
@@ -199,6 +241,7 @@ void CreateWorld() {
                     block.asset = &gDirtBlock;
                 }
                 block.position = glm::translate(glm::mat4(1.0f),glm::vec3(j,k,i));
+                map[Coordinate(j, k, i)] = block;
                 gInstances.push_back(block);
             }
         }
@@ -282,10 +325,9 @@ void Render() {
     glClearColor(1, 1, 1, 1); // black
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // render all instances
-    std::list<BlockInstance>::const_iterator it;
-    for (it = gInstances.begin(); it != gInstances.end(); ++it) {
-        RenderInstances(*it);
+    // go through the unordered list and render all blocks -- there may be a faster approach to this
+    for (std::unordered_map<Coordinate, BlockInstance>::iterator it = map.begin(); it != map.end(); ++it) {
+        RenderInstances(it->second);
     }
     
     // swap the display buffers (displays what was just drawn)
