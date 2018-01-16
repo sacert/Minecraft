@@ -385,12 +385,24 @@ int main() {
     gCamera.setPosition(glm::vec3(0,2,-2));
     gCamera.setViewportAspectRatio(SCREEN_SIZE.x / SCREEN_SIZE.y);
 
-    double lastTime = glfwGetTime();
+    double update_prevTime = glfwGetTime();
+    double fps_prevTime = glfwGetTime();
+    int frames = 0;
+
     while(!glfwWindowShouldClose(gWindow)){
 
-        double thisTime = glfwGetTime();
-        Update((float)(thisTime - lastTime));
-        lastTime = thisTime;
+        // basic FPS display
+        double fps_currTime = glfwGetTime();
+        frames++;
+        if (fps_currTime - fps_prevTime >= 1.0) {
+            printf("%f FPS\n", frames/(fps_currTime - fps_prevTime));
+            frames = 0;
+            fps_prevTime = fps_currTime;
+        }
+
+        double update_currTime = glfwGetTime();
+        Update((float)(update_currTime - update_prevTime));
+        update_prevTime = update_currTime;
 
         // draw one frame
         Render();
