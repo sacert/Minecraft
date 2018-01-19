@@ -253,8 +253,9 @@ void CreateWorld() {
     }
 }
 
+
 void Update(float secondsElapsed) {
-    
+
     //move position of camera based on WASD keys
     const float moveSpeed = 2.0; //units per second
     if(glfwGetKey(gWindow, 'S')){
@@ -273,6 +274,16 @@ void Update(float secondsElapsed) {
     double mouseX, mouseY;
     glfwGetCursorPos(gWindow, &mouseX, &mouseY);
     gCamera.offsetOrientation(mouseSensitivity * (float)mouseY, mouseSensitivity * (float)mouseX);
+
+    // very crude and basic testing of creating a ray
+    std::cout << gCamera.position().x << " " << gCamera.position().y << " " << gCamera.position().z << std::endl;
+    std::cout << "-----" << std::endl;
+    glm::vec3 hmm = gCamera.position();
+    for (int i = 0; i < 5 ;i++) {
+        hmm += gCamera.forward();
+        std::cout << hmm.x << " " << hmm.y << " " << hmm.z << " " << secondsElapsed << std::endl;
+    }
+
     glfwSetCursorPos(gWindow, 0, 0); //reset the mouse, so it doesn't go out of the window
 }
 
@@ -334,6 +345,9 @@ void Render() {
     for (std::unordered_map<Coordinate, BlockInstance>::iterator it = map.begin(); it != map.end(); ++it) {
         RenderInstances(it->second);
     }
+
+    //std::cout << gCamera.position().x << " " << gCamera.position().y << " " << gCamera.position().z << std::endl;
+    //std::cout << gCamera.orientation()[0][0] << " " << gCamera.orientation()[1][1] << " " << gCamera.orientation()[2][2] << std::endl;
 
     // render skybox last
     skybox.Render(gCamera);
