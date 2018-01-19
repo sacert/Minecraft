@@ -4,6 +4,7 @@
 #include <iostream>
 #include <list>
 #include <unordered_map>
+#include <vector>
 
 // Include GLEW. Always include it before gl.h and glfw.h, since it's a bit magic.
 #include <GL/glew.h>
@@ -20,6 +21,10 @@
 #include "texture.hpp"
 #include "bitmap.hpp"
 #include "camera.hpp"
+#include "skybox.hpp"
+#include "libraries/stb_image.h"
+
+#define SOIL_LOAD_RGB 3
 
 #define N -0.0625   // normalized size of each block in texture file - negative for opengl
 #define TEXCOORDY(Y) (1-(0.0625 * Y))    // corrected way to find y coordinates of texture file
@@ -77,7 +82,6 @@ namespace std {
                ^ (hash<int>()(k.z) << 1);
     }
   };
-
 }
 
 // constants
@@ -90,6 +94,7 @@ std::list<BlockInstance> gInstances;
 GLFWwindow* gWindow;
 Camera gCamera;
 std::unordered_map<Coordinate, BlockInstance> map;
+SkyBox skybox;
 
 // Textures are flipped vertically due to how opengl reads them
 Texture* LoadTexture() {
@@ -167,7 +172,7 @@ void LoadBlock(BlockAsset *block, int front_x, int front_y, int back_x, int back
     int left_x, int left_y, int top_x, int top_y, int bottom_x, int bottom_y) {
 
     // set all the elements of block
-    block->shaders = LoadShaders( "block_vertex.glsl", "block_fragment.glsl" );
+    block->shaders = LoadShaders( "shaders/block_vertex.glsl", "shaders/block_fragment.glsl" );
     block->drawType = GL_TRIANGLES;
     block->drawStart = 0;
     block->drawCount = 6*2*3;
@@ -322,13 +327,16 @@ void RenderInstances (const BlockInstance& inst) {
 void Render() {
 
     // clear everything
-    glClearColor(1, 1, 1, 1); // black
+    glClearColor(1, 1, 1, 1); // white
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // go through the unordered list and render all blocks -- there may be a faster approach to this
     for (std::unordered_map<Coordinate, BlockInstance>::iterator it = map.begin(); it != map.end(); ++it) {
         RenderInstances(it->second);
     }
+
+    // render skybox last
+    skybox.Render(gCamera);
     
     // swap the display buffers (displays what was just drawn)
     glfwSwapBuffers(gWindow);
@@ -381,6 +389,7 @@ int main() {
     // Block Loading
     LoadBlock(&gDirtBlock, 2, 15);
     LoadBlock(&gGrassBlock, 3, 15, 3, 15, 3, 15, 3, 15, 0, 15, 3, 15);
+    skybox.LoadSkyBox();
 
     CreateWorld();
 
