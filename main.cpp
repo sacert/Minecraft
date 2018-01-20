@@ -254,7 +254,6 @@ void CreateWorld() {
     }
 }
 
-
 void Update(float secondsElapsed) {
 
     //move position of camera based on WASD keys
@@ -270,19 +269,31 @@ void Update(float secondsElapsed) {
         gCamera.offsetPosition(secondsElapsed * moveSpeed * gCamera.right());
     }
 
+
+    // check to see if mouse was already pressed so it doesn't delete multiple blocks at once
+    // required more testing
+    static int mousePressed = 0;
     // deleting blocks
-    if(glfwGetMouseButton(gWindow, GLFW_MOUSE_BUTTON_LEFT)){
-        glm::vec3 hmm = gCamera.position();
-        for (int i = 0; i < 5 ;i++) {
-            hmm += gCamera.forward();
-            Coordinate cd = Coordinate(floor(hmm.x), floor(hmm.y), floor(hmm.z));
+    int state = glfwGetMouseButton(gWindow, GLFW_MOUSE_BUTTON_LEFT);
+    if(state == GLFW_PRESS && mousePressed == 0){
+        glm::vec3 line = gCamera.position();
+        for (int i = 0; i < 100 ;i++) {
+            // create a line to determine which is the closest block
+            line += secondsElapsed * moveSpeed * gCamera.forward();
+            Coordinate cd = Coordinate(floor(line.x), floor(line.y), floor(line.z));
 
             if (map.count(cd)) {
                 map.erase(cd);
+                mousePressed = 1;
                 return;
             } 
         }
     }
+
+    if (state == GLFW_RELEASE) {
+        mousePressed = 0;
+    }
+
 
     //rotate camera based on mouse movement
     const float mouseSensitivity = 0.1f;
