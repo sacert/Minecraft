@@ -24,6 +24,9 @@
         "algorithm": "cpp",
         "__bit_reference": "cpp",
         "__functional_03": "cpp",
-        "functional": "cpp"
+        "functional": "cpp",
+        "chrono": "cpp",
+        "memory": "cpp",
+        "utility": "cpp"
     }
 }

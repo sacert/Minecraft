@@ -5,6 +5,7 @@
 #include <list>
 #include <unordered_map>
 #include <vector>
+#include <math.h>
 
 // Include GLEW. Always include it before gl.h and glfw.h, since it's a bit magic.
 #include <GL/glew.h>
@@ -269,21 +270,25 @@ void Update(float secondsElapsed) {
         gCamera.offsetPosition(secondsElapsed * moveSpeed * gCamera.right());
     }
 
+    // deleting blocks
+    if(glfwGetMouseButton(gWindow, GLFW_MOUSE_BUTTON_LEFT)){
+        glm::vec3 hmm = gCamera.position();
+        for (int i = 0; i < 5 ;i++) {
+            hmm += gCamera.forward();
+            Coordinate cd = Coordinate(floor(hmm.x), floor(hmm.y), floor(hmm.z));
+
+            if (map.count(cd)) {
+                map.erase(cd);
+                return;
+            } 
+        }
+    }
+
     //rotate camera based on mouse movement
     const float mouseSensitivity = 0.1f;
     double mouseX, mouseY;
     glfwGetCursorPos(gWindow, &mouseX, &mouseY);
     gCamera.offsetOrientation(mouseSensitivity * (float)mouseY, mouseSensitivity * (float)mouseX);
-
-    // very crude and basic testing of creating a ray
-    std::cout << gCamera.position().x << " " << gCamera.position().y << " " << gCamera.position().z << std::endl;
-    std::cout << "-----" << std::endl;
-    glm::vec3 hmm = gCamera.position();
-    for (int i = 0; i < 5 ;i++) {
-        hmm += gCamera.forward();
-        std::cout << hmm.x << " " << hmm.y << " " << hmm.z << " " << secondsElapsed << std::endl;
-    }
-
     glfwSetCursorPos(gWindow, 0, 0); //reset the mouse, so it doesn't go out of the window
 }
 
@@ -345,9 +350,6 @@ void Render() {
     for (std::unordered_map<Coordinate, BlockInstance>::iterator it = map.begin(); it != map.end(); ++it) {
         RenderInstances(it->second);
     }
-
-    //std::cout << gCamera.position().x << " " << gCamera.position().y << " " << gCamera.position().z << std::endl;
-    //std::cout << gCamera.orientation()[0][0] << " " << gCamera.orientation()[1][1] << " " << gCamera.orientation()[2][2] << std::endl;
 
     // render skybox last
     skybox.Render(gCamera);
