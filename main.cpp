@@ -301,7 +301,7 @@ void Update(float secondsElapsed) {
 
     for (int i = 0; i < 100 ;i++) {
         // create a line to determine which is the closest block
-        line += secondsElapsed * moveSpeed * gCamera.forward();
+        line += 0.02f * moveSpeed * gCamera.forward();
         cd = Coordinate(floor(line.x), floor(line.y), floor(line.z));
         if (map.count(cd)) {
             // clear the previous selected block and assign it to the new one
