@@ -455,7 +455,7 @@ int main() {
 
     // Block Loading
     LoadBlock(&gDirtBlock, 2, 15);
-    LoadBlock(&gGrassBlock, 3, 15, 3, 15, 3, 15, 3, 15, 0, 15, 3, 15);
+    LoadBlock(&gGrassBlock, 3, 15, 3, 15, 3, 15, 3, 15, 0, 15, 2, 15);
     skybox.LoadSkyBox();
 
     CreateWorld();
