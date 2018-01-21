@@ -44,6 +44,25 @@ struct BlockAsset {
 struct BlockInstance {
     BlockAsset* asset;
     glm::mat4 position;
+    glm::vec3 cartCoord; // cartesian
+    float selected;
+
+    bool operator==(const BlockInstance& bi)
+    {
+        return asset == bi.asset &&
+            position == bi.position &&
+            selected == bi.selected &&
+            cartCoord == bi.cartCoord;
+    }
+
+    bool operator!=(const BlockInstance& bi)
+    {
+        return asset != bi.asset ||
+            position != bi.position ||
+            selected != bi.selected ||
+            cartCoord != bi.cartCoord;
+    }
+
 };
 
 struct Coordinate {
@@ -96,6 +115,7 @@ GLFWwindow* gWindow;
 Camera gCamera;
 std::unordered_map<Coordinate, BlockInstance> map;
 SkyBox skybox;
+BlockInstance *currSelected;
 
 // Textures are flipped vertically due to how opengl reads them
 Texture* LoadTexture() {
@@ -246,7 +266,9 @@ void CreateWorld() {
                 } else {
                     block.asset = &gDirtBlock;
                 }
+                block.selected = 0;
                 block.position = glm::translate(glm::mat4(1.0f),glm::vec3(j,k,i));
+                block.cartCoord = glm::vec3(j,k,i);
                 map[Coordinate(j, k, i)] = block;
                 gInstances.push_back(block);
             }
@@ -273,21 +295,36 @@ void Update(float secondsElapsed) {
     // check to see if mouse was already pressed so it doesn't delete multiple blocks at once
     // required more testing
     static int mousePressed = 0;
+    Coordinate cd = Coordinate(0,0,0);
     // deleting blocks
+    glm::vec3 line = gCamera.position();
+
+    for (int i = 0; i < 100 ;i++) {
+        // create a line to determine which is the closest block
+        line += secondsElapsed * moveSpeed * gCamera.forward();
+        cd = Coordinate(floor(line.x), floor(line.y), floor(line.z));
+        if (map.count(cd)) {
+            // clear the previous selected block and assign it to the new one
+            if (map.at(cd).selected == 0 && currSelected != NULL) {
+               currSelected->selected = 0;
+            }
+            currSelected = &map.at(cd);
+            currSelected->selected = 1;
+            break;
+        } 
+
+        // if the end of the line is reached without a block being looked at, there is no current selected block
+        if (i == 99 && currSelected != NULL) {
+            currSelected->selected = 0;
+            currSelected = NULL;
+        }
+    }
     int state = glfwGetMouseButton(gWindow, GLFW_MOUSE_BUTTON_LEFT);
     if(state == GLFW_PRESS && mousePressed == 0){
-        glm::vec3 line = gCamera.position();
-        for (int i = 0; i < 100 ;i++) {
-            // create a line to determine which is the closest block
-            line += secondsElapsed * moveSpeed * gCamera.forward();
-            Coordinate cd = Coordinate(floor(line.x), floor(line.y), floor(line.z));
-
-            if (map.count(cd)) {
-                map.erase(cd);
-                mousePressed = 1;
-                return;
-            } 
-        }
+        if (map.count(cd)) {
+            map.erase(cd);
+            mousePressed = 1;
+        } 
     }
 
     if (state == GLFW_RELEASE) {
@@ -315,6 +352,9 @@ void RenderInstances (const BlockInstance& inst) {
     // Get the id for the uniform variable "tex"
     GLint tex = glGetUniformLocation(asset->shaders, "tex");
     glUniform1i(tex, 0);
+
+    GLint selected = glGetUniformLocation(asset->shaders, "selected");
+    glUniform1fv(selected, 1, &inst.selected);
 
     // move block to correct position
     GLint model = glGetUniformLocation(asset->shaders, "model");
