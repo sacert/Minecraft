@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 #include <math.h>
+#include <string>
 
 // Include GLEW. Always include it before gl.h and glfw.h, since it's a bit magic.
 #include <GL/glew.h>
@@ -29,7 +30,7 @@
 #define TEXCOORDY(Y) (1-(0.0625 * Y))    // corrected way to find y coordinates of texture file
 #define TEXCOORDX(X) (0.0625+(0.0625 * X))    // corrected way to find x coordinates of texture file
 
-struct BlockAsset {
+struct Asset {
     GLint shaders;
     Texture* texture;
     GLuint vbo;
@@ -41,27 +42,10 @@ struct BlockAsset {
 };
 
 struct BlockInstance {
-    BlockAsset* asset;
+    Asset* asset;
     glm::mat4 position;
     glm::vec3 cartCoord; // cartesian
     float selected;
-
-    bool operator==(const BlockInstance& bi)
-    {
-        return asset == bi.asset &&
-            position == bi.position &&
-            selected == bi.selected &&
-            cartCoord == bi.cartCoord;
-    }
-
-    bool operator!=(const BlockInstance& bi)
-    {
-        return asset != bi.asset ||
-            position != bi.position ||
-            selected != bi.selected ||
-            cartCoord != bi.cartCoord;
-    }
-
 };
 
 struct Coordinate {
@@ -84,48 +68,39 @@ struct Coordinate {
 
 namespace std {
 
-  template <>
-  struct hash<Coordinate>
-  {
-    std::size_t operator()(const Coordinate& k) const
-    {
-      using std::size_t;
-      using std::hash;
+    // include this to be able to hash Coordinates
+    template <>
+    struct hash<Coordinate>
+    { 
+        std::size_t operator()(const Coordinate& k) const
+        {
+        using std::size_t;
+        using std::hash;
 
-      // Compute individual hash values for first,
-      // second and third and combine them using XOR
-      // and bit shifting:
-
-      return ((hash<int>()(k.x)
-               ^ (hash<int>()(k.y) << 1)) >> 1)
-               ^ (hash<int>()(k.z) << 1);
-    }
-  };
+        return ((hash<int>()(k.x)
+                ^ (hash<int>()(k.y) << 1)) >> 1)
+                ^ (hash<int>()(k.z) << 1);
+        }
+    };
 }
 
 // constants
 const glm::vec2 SCREEN_SIZE(800, 600);
 
 // globals - clean up in future
-BlockAsset gGrassBlock;
-BlockAsset gDirtBlock;
+Asset gGrassBlock;
+Asset gDirtBlock;
 std::list<BlockInstance> gInstances;
 GLFWwindow* gWindow;
 Camera gCamera;
 std::unordered_map<Coordinate, BlockInstance> map;
 SkyBox skybox;
 BlockInstance *currSelected;
-BlockAsset gui;
+Asset gui;
 
 // Textures are flipped vertically due to how opengl reads them
-Texture* LoadTexture() {
-    Bitmap bmp = Bitmap::bitmapFromFile("texture.png");
-    return new Texture(bmp);
-}
-
-// Textures are flipped vertically due to how opengl reads them
-Texture* LoadCrosshair() {
-    Bitmap bmp = Bitmap::bitmapFromFile("crosshair.png");
+Texture* LoadTexture(std::string fileLocation) {
+    Bitmap bmp = Bitmap::bitmapFromFile(fileLocation);
     return new Texture(bmp);
 }
 
@@ -195,7 +170,7 @@ void createBlockBuffer(GLfloat g_vertex_buffer_data[], int x, int y) {
     createBlockBuffer(g_vertex_buffer_data, x, y, x, y, x, y, x, y, x, y, x, y);
 }
 
-void LoadBlock(BlockAsset *block, int front_x, int front_y, int back_x, int back_y, int right_x, int right_y, 
+void LoadBlock(Asset *block, int front_x, int front_y, int back_x, int back_y, int right_x, int right_y, 
     int left_x, int left_y, int top_x, int top_y, int bottom_x, int bottom_y) {
 
     // set all the elements of block
@@ -203,7 +178,7 @@ void LoadBlock(BlockAsset *block, int front_x, int front_y, int back_x, int back
     block->drawType = GL_TRIANGLES;
     block->drawStart = 0;
     block->drawCount = 6*2*3;
-    block->texture = LoadTexture();
+    block->texture = LoadTexture("texture.png");
     glGenBuffers(1, &block->vbo);
     glGenVertexArrays(1, &block->vao);
 
@@ -252,42 +227,36 @@ void LoadBlock(BlockAsset *block, int front_x, int front_y, int back_x, int back
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void LoadGui(BlockAsset *block) {
+void LoadGui(Asset *block) {
 
     // set all the elements of block
     block->shaders = LoadShaders( "shaders/gui_vertex.glsl", "shaders/gui_fragment.glsl" );
     block->drawType = GL_TRIANGLES;
     block->drawStart = 0;
     block->drawCount = 2*3;
-    block->texture = LoadCrosshair();
+    block->texture = LoadTexture("crosshair.png");
     block->scale.x = 0.15 * (SCREEN_SIZE.y/SCREEN_SIZE.x); // by multiply by screen ratio, scale x and y will make a square
     block->scale.y = 0.15;
     glGenBuffers(1, &block->vbo);
     glGenVertexArrays(1, &block->vao);
 
-    // Vertex Array Object - will cause everything underneath to be bound to the VAO
-    // Makes it so you can just bind VAO and all corresponding will be loaded as well
 	glBindVertexArray(block->vao);
-
-    // Vertex Buffer Object
     glBindBuffer(GL_ARRAY_BUFFER, block->vbo);
 
-    // An array of for the block vertices 
+    // An array of for the crosshair vertices 
     GLfloat g_vertex_buffer_data[] = {
-        // front
-    -1.0f,-1.0f, 0.0f,   1.0f, 0.0f,
-     1.0f,-1.0f, 0.0f,   0.0f, 0.0f,
-    -1.0f, 1.0f, 0.0f,   1.0f, 1.0f,
-     1.0f,-1.0f, 0.0f,   0.0f, 0.0f,
-     1.0f, 1.0f, 0.0f,   0.0f, 1.0f,
-    -1.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+        -1.0f,-1.0f, 0.0f,   1.0f, 0.0f,
+         1.0f,-1.0f, 0.0f,   0.0f, 0.0f,
+        -1.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+         1.0f,-1.0f, 0.0f,   0.0f, 0.0f,
+         1.0f, 1.0f, 0.0f,   0.0f, 1.0f,
+        -1.0f, 1.0f, 0.0f,   1.0f, 1.0f,
     };
 
     // Give our vertices to OpenGL.
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
-    // Set the variable 'vert' in vertex shader 
-    // Equals to the vertices for the block
+    // crosshair vertices
     GLuint gVert = glGetAttribLocation(block->shaders, "vert");
     glEnableVertexAttribArray(gVert);
     glVertexAttribPointer(
@@ -299,8 +268,7 @@ void LoadGui(BlockAsset *block) {
         (void*)0            // array buffer offset
     );
 
-    // Set the variable 'vertTexCoord' in vertex shader 
-    // Equals to the UV values for corresponding vertices to the block
+    // UV values
     GLuint gVertTexCoord = glGetAttribLocation(block->shaders, "vertTexCoord");
     glEnableVertexAttribArray(gVertTexCoord);
     glVertexAttribPointer(
@@ -318,7 +286,7 @@ void LoadGui(BlockAsset *block) {
 }
 
 // overload function so that it is easier to load blocks where all the sides are the same texture
-void LoadBlock(BlockAsset *block, int texture_x, int texture_y) {
+void LoadBlock(Asset *block, int texture_x, int texture_y) {
     LoadBlock(block, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y);
 }
 
@@ -345,12 +313,6 @@ void CreateWorld() {
             }
         }
     }
-
-    BlockInstance block;
-    block.asset = &gui;
-    map[Coordinate(-1, -1, -1)] = block;
-    gInstances.push_back(block);
-
 }
 
 void Update(float secondsElapsed) {
@@ -378,7 +340,9 @@ void Update(float secondsElapsed) {
 
     for (int i = 0; i < 100 ;i++) {
         // create a line to determine which is the closest block
-        line += 0.02f * moveSpeed * gCamera.forward();
+        // this determines how far the player will be able to break blocks - adjust accordingly
+        line += 0.02f * moveSpeed * gCamera.forward(); 
+        
         cd = Coordinate(floor(line.x), floor(line.y), floor(line.z));
         if (map.count(cd)) {
             // clear the previous selected block and assign it to the new one
@@ -419,7 +383,7 @@ void Update(float secondsElapsed) {
 
 void RenderInstances (const BlockInstance& inst) {
 
-    BlockAsset* asset = inst.asset;
+    Asset* asset = inst.asset;
     // bind the program (the shaders)
     glUseProgram(asset->shaders);
 
@@ -457,7 +421,7 @@ void RenderInstances (const BlockInstance& inst) {
     glBindVertexArray(asset->vao);
 
     // draw the triangles 
-    glDrawArrays(GL_TRIANGLES, 0, 3*2*6);
+    glDrawArrays(GL_TRIANGLES, 0, asset->drawCount);
     
     // unbind the VAO
     glBindVertexArray(0);
@@ -468,32 +432,28 @@ void RenderInstances (const BlockInstance& inst) {
 }
 
 void RenderCrosshair() {
-    BlockAsset* asset = &gui;
-    // bind the program (the shaders)
-    glUseProgram(asset->shaders);
 
-    // bind the texture and set the "tex" uniform in the fragment shader -- *** could I potentially just bind once since I'm only using 1 texture file? ***
+    // use program - shaders
+    glUseProgram(gui.shaders);
+
+    // active and bind textures
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, asset->texture->object());
+    glBindTexture(GL_TEXTURE_2D, gui.texture->object());
 
-    // Get the id for the uniform variable "scale"
-    GLint scale = glGetUniformLocation(asset->shaders, "scale");
-    glUniform2f(scale, asset->scale.x, asset->scale.y);
+    // scaling crosshair
+    GLint scale = glGetUniformLocation(gui.shaders, "scale");
+    glUniform2f(scale, gui.scale.x, gui.scale.y);
 
-    // Get the id for the uniform variable "tex"
-    GLint tex = glGetUniformLocation(asset->shaders, "tex");
+    // texture values
+    GLint tex = glGetUniformLocation(gui.shaders, "tex");
     glUniform1i(tex, 0);
         
-    // bind the VAO (the triangle)
-    glBindVertexArray(asset->vao);
-
-    // draw the triangles 
-    glDrawArrays(GL_TRIANGLES, 0, 3*2*6);
+    // bind the VAO and draw everything inside
+    glBindVertexArray(gui.vao);
+    glDrawArrays(GL_TRIANGLES, 0, gui.drawCount);
     
-    // unbind the VAO
+    // unbind VAO and program (shaders)
     glBindVertexArray(0);
-    
-    // unbind the program
     glUseProgram(0);
 }
 
