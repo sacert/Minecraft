@@ -25,8 +25,6 @@
 #include "skybox.hpp"
 #include "libraries/stb_image.h"
 
-#define SOIL_LOAD_RGB 3
-
 #define N -0.0625   // normalized size of each block in texture file - negative for opengl
 #define TEXCOORDY(Y) (1-(0.0625 * Y))    // corrected way to find y coordinates of texture file
 #define TEXCOORDX(X) (0.0625+(0.0625 * X))    // corrected way to find x coordinates of texture file
@@ -39,6 +37,7 @@ struct BlockAsset {
     GLenum drawType;
     GLint drawStart;
     GLint drawCount;
+    glm::vec2 scale;
 };
 
 struct BlockInstance {
@@ -116,10 +115,17 @@ Camera gCamera;
 std::unordered_map<Coordinate, BlockInstance> map;
 SkyBox skybox;
 BlockInstance *currSelected;
+BlockAsset gui;
 
 // Textures are flipped vertically due to how opengl reads them
 Texture* LoadTexture() {
     Bitmap bmp = Bitmap::bitmapFromFile("texture.png");
+    return new Texture(bmp);
+}
+
+// Textures are flipped vertically due to how opengl reads them
+Texture* LoadCrosshair() {
+    Bitmap bmp = Bitmap::bitmapFromFile("crosshair.png");
     return new Texture(bmp);
 }
 
@@ -246,6 +252,71 @@ void LoadBlock(BlockAsset *block, int front_x, int front_y, int back_x, int back
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+void LoadGui(BlockAsset *block) {
+
+    // set all the elements of block
+    block->shaders = LoadShaders( "shaders/gui_vertex.glsl", "shaders/gui_fragment.glsl" );
+    block->drawType = GL_TRIANGLES;
+    block->drawStart = 0;
+    block->drawCount = 2*3;
+    block->texture = LoadCrosshair();
+    block->scale.x = 0.15 * (SCREEN_SIZE.y/SCREEN_SIZE.x); // by multiply by screen ratio, scale x and y will make a square
+    block->scale.y = 0.15;
+    glGenBuffers(1, &block->vbo);
+    glGenVertexArrays(1, &block->vao);
+
+    // Vertex Array Object - will cause everything underneath to be bound to the VAO
+    // Makes it so you can just bind VAO and all corresponding will be loaded as well
+	glBindVertexArray(block->vao);
+
+    // Vertex Buffer Object
+    glBindBuffer(GL_ARRAY_BUFFER, block->vbo);
+
+    // An array of for the block vertices 
+    GLfloat g_vertex_buffer_data[] = {
+        // front
+    -1.0f,-1.0f, 0.0f,   1.0f, 0.0f,
+     1.0f,-1.0f, 0.0f,   0.0f, 0.0f,
+    -1.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+     1.0f,-1.0f, 0.0f,   0.0f, 0.0f,
+     1.0f, 1.0f, 0.0f,   0.0f, 1.0f,
+    -1.0f, 1.0f, 0.0f,   1.0f, 1.0f,
+    };
+
+    // Give our vertices to OpenGL.
+    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+
+    // Set the variable 'vert' in vertex shader 
+    // Equals to the vertices for the block
+    GLuint gVert = glGetAttribLocation(block->shaders, "vert");
+    glEnableVertexAttribArray(gVert);
+    glVertexAttribPointer(
+        0,                  // attribute 0
+        3,                  // size
+        GL_FLOAT,           // type
+        GL_FALSE,           // normalized?
+        5*sizeof(GLfloat),  // stride
+        (void*)0            // array buffer offset
+    );
+
+    // Set the variable 'vertTexCoord' in vertex shader 
+    // Equals to the UV values for corresponding vertices to the block
+    GLuint gVertTexCoord = glGetAttribLocation(block->shaders, "vertTexCoord");
+    glEnableVertexAttribArray(gVertTexCoord);
+    glVertexAttribPointer(
+        1,                  // attribute 1
+        2,                  // size
+        GL_FLOAT,           // type
+        GL_FALSE,           // normalized?
+        5*sizeof(GLfloat),  // stride
+        (const GLvoid*)(3 * sizeof(GLfloat))    // array buffer offset
+    );
+
+    // unbind VAO and VBO 
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
 // overload function so that it is easier to load blocks where all the sides are the same texture
 void LoadBlock(BlockAsset *block, int texture_x, int texture_y) {
     LoadBlock(block, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y, texture_x, texture_y);
@@ -274,6 +345,12 @@ void CreateWorld() {
             }
         }
     }
+
+    BlockInstance block;
+    block.asset = &gui;
+    map[Coordinate(-1, -1, -1)] = block;
+    gInstances.push_back(block);
+
 }
 
 void Update(float secondsElapsed) {
@@ -390,6 +467,36 @@ void RenderInstances (const BlockInstance& inst) {
 
 }
 
+void RenderCrosshair() {
+    BlockAsset* asset = &gui;
+    // bind the program (the shaders)
+    glUseProgram(asset->shaders);
+
+    // bind the texture and set the "tex" uniform in the fragment shader -- *** could I potentially just bind once since I'm only using 1 texture file? ***
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, asset->texture->object());
+
+    // Get the id for the uniform variable "scale"
+    GLint scale = glGetUniformLocation(asset->shaders, "scale");
+    glUniform2f(scale, asset->scale.x, asset->scale.y);
+
+    // Get the id for the uniform variable "tex"
+    GLint tex = glGetUniformLocation(asset->shaders, "tex");
+    glUniform1i(tex, 0);
+        
+    // bind the VAO (the triangle)
+    glBindVertexArray(asset->vao);
+
+    // draw the triangles 
+    glDrawArrays(GL_TRIANGLES, 0, 3*2*6);
+    
+    // unbind the VAO
+    glBindVertexArray(0);
+    
+    // unbind the program
+    glUseProgram(0);
+}
+
 // draws a single frame
 void Render() {
 
@@ -401,6 +508,8 @@ void Render() {
     for (std::unordered_map<Coordinate, BlockInstance>::iterator it = map.begin(); it != map.end(); ++it) {
         RenderInstances(it->second);
     }
+
+    RenderCrosshair();
 
     // render skybox last
     skybox.Render(gCamera);
@@ -457,6 +566,7 @@ int main() {
     LoadBlock(&gDirtBlock, 2, 15);
     LoadBlock(&gGrassBlock, 3, 15, 3, 15, 3, 15, 3, 15, 0, 15, 2, 15);
     skybox.LoadSkyBox();
+    LoadGui(&gui);
 
     CreateWorld();
 
