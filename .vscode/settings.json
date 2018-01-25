@@ -27,6 +27,7 @@
         "functional": "cpp",
         "chrono": "cpp",
         "memory": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "type_traits": "cpp"
     }
 }

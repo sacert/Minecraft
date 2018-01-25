@@ -333,10 +333,13 @@ void Update(float secondsElapsed) {
 
     // check to see if mouse was already pressed so it doesn't delete multiple blocks at once
     // required more testing
-    static int mousePressed = 0;
+    static int rightMousePressed = 0;
+    static int leftMousePressed = 0;
     Coordinate cd = Coordinate(0,0,0);
     // deleting blocks
     glm::vec3 line = gCamera.position();
+    glm::vec3 prevLine;     // prevLine holds previous line position
+    glm::vec3 prevBlock;    // prevBlock holds the position of the block right before one is hit
 
     for (int i = 0; i < 100 ;i++) {
         // create a line to determine which is the closest block
@@ -344,7 +347,13 @@ void Update(float secondsElapsed) {
         line += 0.02f * moveSpeed * gCamera.forward(); 
         
         cd = Coordinate(floor(line.x), floor(line.y), floor(line.z));
+
+        // keep a track of the previous position
+        if (!map.count(cd)) {
+            prevLine = line;
+        }
         if (map.count(cd)) {
+            prevBlock = prevLine;
             // clear the previous selected block and assign it to the new one
             if (map.at(cd).selected == 0 && currSelected != NULL) {
                currSelected->selected = 0;
@@ -360,16 +369,35 @@ void Update(float secondsElapsed) {
             currSelected = NULL;
         }
     }
-    int state = glfwGetMouseButton(gWindow, GLFW_MOUSE_BUTTON_LEFT);
-    if(state == GLFW_PRESS && mousePressed == 0){
+    int stateLeft = glfwGetMouseButton(gWindow, GLFW_MOUSE_BUTTON_LEFT);
+    if (stateLeft == GLFW_PRESS && leftMousePressed == 0){
         if (map.count(cd)) {
             map.erase(cd);
-            mousePressed = 1;
+            leftMousePressed = 1;
         } 
     }
 
-    if (state == GLFW_RELEASE) {
-        mousePressed = 0;
+    int stateRight = glfwGetMouseButton(gWindow, GLFW_MOUSE_BUTTON_RIGHT);
+    if (stateRight == GLFW_PRESS && rightMousePressed == 0){
+        if (map.count(cd)) {
+            // insert a dirt block for testing -- will later replace with player's inventory 
+            BlockInstance block;
+            block.asset = &gDirtBlock;
+            block.selected = 0;
+            block.position = glm::translate(glm::mat4(1.0f),glm::vec3((int)floor(prevBlock.x),(int)floor(prevBlock.y),(int)floor(prevBlock.z)));
+            block.cartCoord = glm::vec3((int)floor(prevBlock.x),(int)floor(prevBlock.y),(int)floor(prevBlock.z));
+            map[Coordinate((int)floor(prevBlock.x),(int)floor(prevBlock.y),(int)floor(prevBlock.z))] = block;
+            gInstances.push_back(block);
+            rightMousePressed = 1;
+        } 
+    }
+
+    if (stateLeft == GLFW_RELEASE) {
+        leftMousePressed = 0;
+    }
+
+    if (stateRight == GLFW_RELEASE) {
+        rightMousePressed = 0;
     }
 
 
