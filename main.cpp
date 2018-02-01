@@ -25,6 +25,7 @@
 #include "camera.hpp"
 #include "skybox.hpp"
 #include "libraries/stb_image.h"
+#include "libraries/FastNoise.h"
 
 #define N -0.0625   // normalized size of each block in texture file - negative for opengl
 #define TEXCOORDY(Y) (1-(0.0625 * Y))    // corrected way to find y coordinates of texture file
@@ -97,6 +98,8 @@ std::unordered_map<Coordinate, BlockInstance> map;
 SkyBox skybox;
 BlockInstance *currSelected;
 Asset gui;
+
+FastNoise perlinNoise; // Create a FastNoise object
 
 // Textures are flipped vertically due to how opengl reads them
 Texture* LoadTexture(std::string fileLocation) {
@@ -296,19 +299,20 @@ void CreateWorld() {
     // testing 
 
     // 10x10x3 block of dirt
-    for (int i = 0; i < 16; i++) {
-        for (int j = 0; j < 16; j++) {
-            for (int k = 0; k < 2; k++) {
+    for (int i = 0; i < 64; i++) {
+        for (int j = 0; j < 64; j++) {
+            for (int k = 0; k < 1; k++) {
                 BlockInstance block;
                 if (k == 1) {
                     block.asset = &gGrassBlock;
                 } else {
                     block.asset = &gDirtBlock;
                 }
+                float height = round(perlinNoise.GetNoise(j,k,i) * 10);
                 block.selected = 0;
-                block.position = glm::translate(glm::mat4(1.0f),glm::vec3(j,k,i));
-                block.cartCoord = glm::vec3(j,k,i);
-                map[Coordinate(j, k, i)] = block;
+                block.position = glm::translate(glm::mat4(1.0f),glm::vec3(j,height,i));
+                block.cartCoord = glm::vec3(j,height,i);
+                map[Coordinate(j, height, i)] = block;
                 gInstances.push_back(block);
             }
         }
@@ -549,6 +553,10 @@ int main() {
 
     // Turn off vsync ***** LEAVE ON FOR OPTIMISATION TESTING BUT DELETE AFTER ******
     glfwSwapInterval(0);
+
+    // Setting up perlin noise - should be within it's own class (change later)
+    perlinNoise.SetNoiseType(FastNoise::Perlin); // Set the desired noise type
+    perlinNoise.SetSeed(123);
 
     // Block Loading
     LoadBlock(&gDirtBlock, 2, 15);
