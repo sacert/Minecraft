@@ -92,6 +92,8 @@ const glm::vec2 SCREEN_SIZE(800, 600);
 // globals - clean up in future
 Asset gGrassBlock;
 Asset gDirtBlock;
+Asset gBedrockBlock;
+Asset gCobblestoneBlock;
 std::list<BlockInstance> gInstances;
 GLFWwindow* gWindow;
 Camera gCamera;
@@ -301,21 +303,30 @@ void CreateWorld() {
     // testing 
 
     // 10x10x3 block of dirt
-    for (int i = 0; i < 64; i++) {
-        for (int j = 0; j < 64; j++) {
-            for (int k = 0; k < 1; k++) {
+    for (int i = 0; i < 16; i++) {
+        for (int j = 0; j < 16; j++) {
+
+            float height = round(perlinNoise.GetNoise(j,i) * 10);
+            float topLevel = height;
+            while (height > -128) {
+                
                 BlockInstance block;
-                if (k == 1) {
+                if (height == topLevel) {
                     block.asset = &gGrassBlock;
+                } else if (height <= -8) {
+                    block.asset = &gCobblestoneBlock;
+                } else if (height == -127) {
+                    block.asset = &gBedrockBlock;
                 } else {
                     block.asset = &gDirtBlock;
                 }
-                float height = round(perlinNoise.GetNoise(j,k,i) * 10);
+
                 block.selected = 0;
                 block.position = glm::translate(glm::mat4(1.0f),glm::vec3(j,height,i));
                 block.cartCoord = glm::vec3(j,height,i);
                 map[Coordinate(j, height, i)] = block;
                 gInstances.push_back(block);
+                height--;
             }
         }
     }
@@ -574,6 +585,9 @@ int main() {
     // Block Loading
     LoadBlock(&gDirtBlock, 2, 15);
     LoadBlock(&gGrassBlock, 3, 15, 3, 15, 3, 15, 3, 15, 0, 15, 2, 15);
+    LoadBlock(&gBedrockBlock, 1, 14);
+    LoadBlock(&gCobblestoneBlock, 0, 14);
+
     skybox.LoadSkyBox();
     LoadGui(&gui);
 
