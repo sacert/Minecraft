@@ -24,6 +24,7 @@
 #include "bitmap.hpp"
 #include "camera.hpp"
 #include "skybox.hpp"
+#include "frustum.hpp"
 #include "libraries/stb_image.h"
 #include "libraries/FastNoise.h"
 
@@ -99,6 +100,7 @@ SkyBox skybox;
 BlockInstance *currSelected;
 Asset gui;
 
+Frustum frustum;
 FastNoise perlinNoise; // Create a FastNoise object
 
 // Textures are flipped vertically due to how opengl reads them
@@ -415,6 +417,11 @@ void Update(float secondsElapsed) {
 
 void RenderInstances (const BlockInstance& inst) {
 
+    // check if the current block is in view - if not, no need to render it
+    if (!frustum.cubeInFrustum(inst.cartCoord.x, inst.cartCoord.y, inst.cartCoord.z, 1)) {
+        return;
+    }
+
     Asset* asset = inst.asset;
     // bind the program (the shaders)
     glUseProgram(asset->shaders);
@@ -496,6 +503,9 @@ void Render() {
     glClearColor(1, 1, 1, 1); // white
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // update frustum to current view
+    frustum.getFrustum(gCamera.view(), gCamera.projection());
+
     // go through the unordered list and render all blocks -- there may be a faster approach to this
     for (std::unordered_map<Coordinate, BlockInstance>::iterator it = map.begin(); it != map.end(); ++it) {
         RenderInstances(it->second);
@@ -504,7 +514,9 @@ void Render() {
     RenderCrosshair();
 
     // render skybox last
+    glDisable(GL_CULL_FACE);
     skybox.Render(gCamera);
+    glEnable(GL_CULL_FACE);
     
     // swap the display buffers (displays what was just drawn)
     glfwSwapBuffers(gWindow);
@@ -546,6 +558,7 @@ int main() {
 
     // Makes sure textures factor in depth when being loaded
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LESS);
 
     // Ensure we can capture the escape key being pressed below
