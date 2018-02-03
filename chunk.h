@@ -1,6 +1,7 @@
-#include "Block.h"
+#include "block.h"
 #include "libraries/FastNoise.h"
 #include <unordered_map>
+#include "shader.h"
 
 #define CHUNK_SIZE 16 // x & z
 #define CHUNK_HEIGHT 256 // y
@@ -50,6 +51,12 @@ class Chunk {
     private:
         int x;
         int z;
+        GLuint vbo;
+        GLuint vao;
         std::unordered_map<Coordinates, BlockType> blocks;
         FastNoise perlinNoise;
+        std::vector<GLfloat> buffer_data;
+        bool checkFace(int x, int y, int z);
+        GLint shaders = LoadShaders( "shaders/block_vertex.glsl", "shaders/block_fragment.glsl" );
+
 };

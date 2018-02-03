@@ -6,8 +6,8 @@ run: all
 clean:
 	rm *.o
 
-main: main.o shader.o texture.o bitmap.o camera.o skybox.o frustum.o chunk.o libraries/FastNoise.o
-	g++ main.o shader.o texture.o bitmap.o camera.o skybox.o frustum.o chunk.o libraries/FastNoise.o -o main -lGLEW -lglfw -framework OpenGL 
+main: main.o shader.o texture.o bitmap.o camera.o skybox.o frustum.o block.o chunk.o libraries/FastNoise.o
+	g++ main.o shader.o texture.o bitmap.o camera.o skybox.o frustum.o block.o chunk.o libraries/FastNoise.o -o main -lGLEW -lglfw -framework OpenGL 
 
 main.o: main.cpp
 	g++ -c -o main.o main.cpp
@@ -29,6 +29,9 @@ skybox.o: skybox.cpp skybox.h
 
 frustum.o: frustum.cpp frustum.h
 	g++ -c -o frustum.o frustum.cpp
+
+block.o: block.cpp block.h
+	g++ -c -o block.o block.cpp
 
 chunk.o: chunk.cpp chunk.h
 	g++ -c -o chunk.o chunk.cpp

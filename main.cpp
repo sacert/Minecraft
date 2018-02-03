@@ -19,12 +19,12 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
-#include "shader.hpp"
-#include "texture.hpp"
-#include "bitmap.hpp"
-#include "camera.hpp"
-#include "skybox.hpp"
-#include "frustum.hpp"
+#include "shader.h"
+#include "texture.h"
+#include "bitmap.h"
+#include "camera.h"
+#include "skybox.h"
+#include "frustum.h"
 #include "libraries/stb_image.h"
 #include "libraries/FastNoise.h"
 
