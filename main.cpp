@@ -511,8 +511,7 @@ void RenderCrosshair() {
 void Render() {
 
     // clear everything
-    glClearColor(1, 1, 1, 1); // white
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT);
 
     // update frustum to current view
     frustum.getFrustum(gCamera.view(), gCamera.projection());
