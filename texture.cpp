@@ -16,7 +16,7 @@
  limitations under the License.
  */
 
-#include "texture.hpp"
+#include "texture.h"
 #include <stdexcept>
 
 static GLenum TextureFormatForBitmapFormat(Bitmap::Format format)

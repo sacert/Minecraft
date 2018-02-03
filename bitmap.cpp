@@ -15,7 +15,7 @@
  limitations under the License.
  */
 
-#include "bitmap.hpp"
+#include "bitmap.h"
 #include <stdexcept>
 #include <cstdlib>
 

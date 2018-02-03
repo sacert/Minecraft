@@ -2,7 +2,7 @@
 #include <fstream>
 #include <cassert>
 #include <sstream>
-#include "shader.hpp"
+#include "shader.h"
 
 GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path){
 

@@ -1,5 +1,5 @@
 #include <GL/glew.h>
-#include "camera.hpp"
+#include "camera.h"
 
 class SkyBox {
     public:

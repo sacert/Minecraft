@@ -1,5 +1,5 @@
-#include "skybox.hpp"
-#include "shader.hpp"
+#include "skybox.h"
+#include "shader.h"
 #include <glm/glm.hpp>
 
 void SkyBox::LoadSkyBox() {

@@ -1,4 +1,4 @@
-#include "frustum.hpp"
+#include "frustum.h"
 #include <glm/gtc/type_ptr.hpp>
 
 void Frustum::getFrustum(glm::mat4 modelViewMatrix, glm::mat4 projectionMatrix) {

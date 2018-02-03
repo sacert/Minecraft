@@ -17,6 +17,7 @@ void Chunk::createChunk() {
     int minHeight = -maxHeight;
 
     // 16 * 256 * 16
+    // build chunk map
     for (int xx = x; xx < CHUNK_SIZE; xx++) {
         for (int zz = z; zz < CHUNK_SIZE; zz++) {
 
@@ -40,6 +41,8 @@ void Chunk::createChunk() {
             }
         }
     }
+
+    // fill chunk vao
 }
 void renderChunk();
 

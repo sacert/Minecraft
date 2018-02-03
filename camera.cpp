@@ -17,7 +17,7 @@
  */
 #define _USE_MATH_DEFINES
 #include <cmath>
-#include "camera.hpp"
+#include "camera.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 static const float MaxVerticalAngle = 85.0f; //must be less than 90 to avoid gimbal lock

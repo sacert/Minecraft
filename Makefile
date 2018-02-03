@@ -12,22 +12,22 @@ main: main.o shader.o texture.o bitmap.o camera.o skybox.o frustum.o chunk.o lib
 main.o: main.cpp
 	g++ -c -o main.o main.cpp
 
-shader.o: shader.cpp shader.hpp
+shader.o: shader.cpp shader.h
 	g++ -c -o shader.o shader.cpp
 
-texture.o: texture.cpp texture.hpp
+texture.o: texture.cpp texture.h
 	g++ -c -o texture.o texture.cpp
 
-bitmap.o: bitmap.cpp bitmap.hpp
+bitmap.o: bitmap.cpp bitmap.h
 	g++ -c -o bitmap.o bitmap.cpp
 
-camera.o: camera.cpp camera.hpp
+camera.o: camera.cpp camera.h
 	g++ -c -o camera.o camera.cpp
 
-skybox.o: skybox.cpp skybox.hpp
+skybox.o: skybox.cpp skybox.h
 	g++ -c -o skybox.o skybox.cpp
 
-frustum.o: frustum.cpp frustum.hpp
+frustum.o: frustum.cpp frustum.h
 	g++ -c -o frustum.o frustum.cpp
 
 chunk.o: chunk.cpp chunk.h

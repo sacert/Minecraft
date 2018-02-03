@@ -19,7 +19,7 @@
 #pragma once
 
 #include <GL/glew.h>
-#include "bitmap.hpp"
+#include "bitmap.h"
     
 /**
     Represents an OpenGL texture
