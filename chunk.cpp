@@ -189,7 +189,7 @@ void Chunk::renderChunk() {
 bool Chunk::checkFace(int xx, int yy, int zz) {
 
     // since I don't have a way to look at blocks in different chunks, always render the edge of the chunk blocks
-    if (xx > CHUNK_SIZE || xx < CHUNK_SIZE || zz < CHUNK_SIZE || zz > CHUNK_SIZE || yy < CHUNK_SIZE || yy > CHUNK_SIZE) {
+    if (xx > CHUNK_SIZE || xx < 0 || zz < 0 || zz > CHUNK_SIZE || yy < -(CHUNK_HEIGHT/2) || yy > CHUNK_HEIGHT/2) {
         return true;
     }
     return (blocks[Coordinates(xx, yy, zz)] == BlockType::AIR);
