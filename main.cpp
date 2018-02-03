@@ -26,6 +26,7 @@
 #include "skybox.h"
 #include "frustum.h"
 #include "chunk.h"
+#include "util.h"
 #include "libraries/stb_image.h"
 #include "libraries/FastNoise.h"
 
@@ -70,12 +71,6 @@ Asset gui;
 
 Frustum frustum;
 FastNoise perlinNoise; // Create a FastNoise object
-
-// Textures are flipped vertically due to how opengl reads them
-Texture* LoadTexture(std::string fileLocation) {
-    Bitmap bmp = Bitmap::bitmapFromFile(fileLocation);
-    return new Texture(bmp);
-}
 
 // Create the block buffer where the parameters are UV coordinates, allowing for different textures on each side of the block
 void createBlockBuffer(GLfloat g_vertex_buffer_data[], int front_x, int front_y, int back_x, int back_y, int right_x, int right_y, 

@@ -5,13 +5,7 @@
 #include <glm/glm.hpp>
 
 #include "chunk.h"
-//#include "main.cpp"
-
-// Textures are flipped vertically due to how opengl reads them
-Texture* LoadTextures(std::string fileLocation) {
-    Bitmap bmp = Bitmap::bitmapFromFile(fileLocation);
-    return new Texture(bmp);
-}
+#include "util.h"
 
 // set x and z value to appropriate positions
 Chunk::Chunk(int xx, int zz, Camera *cam) {
@@ -22,9 +16,13 @@ Chunk::Chunk(int xx, int zz, Camera *cam) {
     perlinNoise.SetNoiseType(FastNoise::Perlin); 
     perlinNoise.SetSeed(123);
 
-    texture = LoadTextures("texture.png");
+    texture = LoadTexture("texture.png");
     shaders = LoadShaders( "shaders/block_vertex.glsl", "shaders/block_fragment.glsl" );
     camera = cam;
+}
+
+Chunk::~Chunk() {
+    delete texture;
 }
 
 void Chunk::createChunk() {
