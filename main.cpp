@@ -25,6 +25,7 @@
 #include "camera.h"
 #include "skybox.h"
 #include "frustum.h"
+#include "chunk.h"
 #include "libraries/stb_image.h"
 #include "libraries/FastNoise.h"
 
@@ -50,41 +51,6 @@ struct BlockInstance {
     float selected;
 };
 
-struct Coordinate {
-    int x;
-    int y;
-    int z;
-
-    Coordinate (int xx, int yy, int zz) {
-        x = xx;
-        y = yy;
-        z = zz;
-    }
-
-    bool operator==(const Coordinate &other) const
-    { return (x == other.x
-                && y == other.y
-                && z == other.z);
-    }
-};
-
-namespace std {
-
-    // include this to be able to hash Coordinates
-    template <>
-    struct hash<Coordinate>
-    { 
-        std::size_t operator()(const Coordinate& k) const
-        {
-        using std::size_t;
-        using std::hash;
-
-        return ((hash<int>()(k.x)
-                ^ (hash<int>()(k.y) << 1)) >> 1)
-                ^ (hash<int>()(k.z) << 1);
-        }
-    };
-}
 
 // constants
 const glm::vec2 SCREEN_SIZE(800, 600);
@@ -97,7 +63,7 @@ Asset gCobblestoneBlock;
 std::list<BlockInstance> gInstances;
 GLFWwindow* gWindow;
 Camera gCamera;
-std::unordered_map<Coordinate, BlockInstance> map;
+std::unordered_map<Coordinates, BlockInstance> map;
 SkyBox skybox;
 BlockInstance *currSelected;
 Asset gui;
@@ -324,7 +290,7 @@ void CreateWorld() {
                 block.selected = 0;
                 block.position = glm::translate(glm::mat4(1.0f),glm::vec3(j,height,i));
                 block.cartCoord = glm::vec3(j,height,i);
-                map[Coordinate(j, height, i)] = block;
+                map[Coordinates(j, height, i)] = block;
                 gInstances.push_back(block);
                 height--;
             }
@@ -352,7 +318,7 @@ void Update(float secondsElapsed) {
     // required more testing
     static int rightMousePressed = 0;
     static int leftMousePressed = 0;
-    Coordinate cd = Coordinate(0,0,0);
+    Coordinates cd = Coordinates(0,0,0);
     // deleting blocks
     glm::vec3 line = gCamera.position();
     glm::vec3 prevLine;     // prevLine holds previous line position
@@ -363,7 +329,7 @@ void Update(float secondsElapsed) {
         // this determines how far the player will be able to break blocks - adjust accordingly
         line += 0.02f * moveSpeed * gCamera.forward(); 
         
-        cd = Coordinate(floor(line.x), floor(line.y), floor(line.z));
+        cd = Coordinates(floor(line.x), floor(line.y), floor(line.z));
 
         // keep a track of the previous position
         if (!map.count(cd)) {
@@ -403,7 +369,7 @@ void Update(float secondsElapsed) {
             block.selected = 0;
             block.position = glm::translate(glm::mat4(1.0f),glm::vec3((int)floor(prevBlock.x),(int)floor(prevBlock.y),(int)floor(prevBlock.z)));
             block.cartCoord = glm::vec3((int)floor(prevBlock.x),(int)floor(prevBlock.y),(int)floor(prevBlock.z));
-            map[Coordinate((int)floor(prevBlock.x),(int)floor(prevBlock.y),(int)floor(prevBlock.z))] = block;
+            map[Coordinates((int)floor(prevBlock.x),(int)floor(prevBlock.y),(int)floor(prevBlock.z))] = block;
             gInstances.push_back(block);
             rightMousePressed = 1;
         } 
@@ -508,7 +474,7 @@ void RenderCrosshair() {
 }
 
 // draws a single frame
-void Render() {
+void Render(Chunk &chunk) {
 
     // clear everything
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -517,9 +483,11 @@ void Render() {
     frustum.getFrustum(gCamera.view(), gCamera.projection());
 
     // go through the unordered list and render all blocks -- there may be a faster approach to this
-    for (std::unordered_map<Coordinate, BlockInstance>::iterator it = map.begin(); it != map.end(); ++it) {
-        RenderInstances(it->second);
+    for (std::unordered_map<Coordinates, BlockInstance>::iterator it = map.begin(); it != map.end(); ++it) {
+        //RenderInstances(it->second);
     }
+
+    chunk.renderChunk();
 
     RenderCrosshair();
 
@@ -600,6 +568,11 @@ int main() {
     double fps_prevTime = glfwGetTime();
     int frames = 0;
 
+
+    // chunk testing
+    Chunk chunk(0, 0, &gCamera);
+    chunk.createChunk();
+
     while(!glfwWindowShouldClose(gWindow)){
 
         // basic FPS display
@@ -616,7 +589,7 @@ int main() {
         update_prevTime = update_currTime;
 
         // draw one frame
-        Render();
+        Render(chunk);
         glfwPollEvents();
 
         // check for errors

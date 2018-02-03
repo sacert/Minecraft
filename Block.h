@@ -1,5 +1,6 @@
 #include <vector>
 #include <GL/glew.h>
+#include <unordered_map>
 
 #define N -0.0625   // normalized size of each block in texture file - negative for opengl
 #define TEXCOORDY(Y) (1-(0.0625 * Y))    // corrected way to find y coordinates of texture file
@@ -28,16 +29,52 @@ struct TextureSides {
     int back_y;
 };
 
+struct Coordinates {
+    int x;
+    int y;
+    int z;
+
+    Coordinates (int xx, int yy, int zz) {
+        x = xx;
+        y = yy;
+        z = zz;
+    }
+
+    bool operator==(const Coordinates &other) const
+    { return (x == other.x
+                && y == other.y
+                && z == other.z);
+    }
+};
+
+namespace std {
+
+    // include this to be able to hash Coordinates
+    template <>
+    struct hash<Coordinates>
+    { 
+        std::size_t operator()(const Coordinates& k) const
+        {
+        using std::size_t;
+        using std::hash;
+
+        return ((hash<int>()(k.x)
+                ^ (hash<int>()(k.y) << 1)) >> 1)
+                ^ (hash<int>()(k.z) << 1);
+        }
+    };
+}
+
 TextureSides sameSides(int x, int y);
 TextureSides differentSides(int front_x, int front_y, int back_x, int back_y, int right_x, int right_y, int left_x, int left_y, int top_x, int top_y, int bottom_x, int bottom_y);
 TextureSides getTextureSides(BlockType bt);
 
-void addBottomFace(std::vector<GLfloat> &buffer_data, BlockType bt);
-void addTopFace(std::vector<GLfloat> &buffer_data, BlockType bt);
-void addRightFace(std::vector<GLfloat> &buffer_data, BlockType bt);
-void addLeftFace(std::vector<GLfloat> &buffer_data, BlockType bt);
-void addFrontFace(std::vector<GLfloat> &buffer_data, BlockType bt);
-void addBackFace(std::vector<GLfloat> &buffer_data, BlockType bt);
+void addBottomFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);
+void addTopFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);
+void addRightFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);
+void addLeftFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);
+void addFrontFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);
+void addBackFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);
 
 //GLint shaders = LoadShaders( "shaders/block_vertex.glsl", "shaders/block_fragment.glsl" );
 

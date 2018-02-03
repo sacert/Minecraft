@@ -1,62 +1,29 @@
 #include "block.h"
 #include "libraries/FastNoise.h"
-#include <unordered_map>
 #include "shader.h"
+#include "texture.h"
+#include "camera.h"
 
 #define CHUNK_SIZE 16 // x & z
 #define CHUNK_HEIGHT 256 // y
 
-struct Coordinates {
-    int x;
-    int y;
-    int z;
-
-    Coordinates (int xx, int yy, int zz) {
-        x = xx;
-        y = yy;
-        z = zz;
-    }
-
-    bool operator==(const Coordinates &other) const
-    { return (x == other.x
-                && y == other.y
-                && z == other.z);
-    }
-};
-
-namespace std {
-
-    // include this to be able to hash Coordinates
-    template <>
-    struct hash<Coordinates>
-    { 
-        std::size_t operator()(const Coordinates& k) const
-        {
-        using std::size_t;
-        using std::hash;
-
-        return ((hash<int>()(k.x)
-                ^ (hash<int>()(k.y) << 1)) >> 1)
-                ^ (hash<int>()(k.z) << 1);
-        }
-    };
-}
-
 class Chunk {
     public:
-        Chunk(int x, int z);
+        Chunk(int x, int z, Camera *cam);
         void createChunk();
         void renderChunk();
         std::unordered_map<Coordinates, BlockType> getBlocks();
     private:
         int x;
         int z;
+        int faces;
         GLuint vbo;
         GLuint vao;
         std::unordered_map<Coordinates, BlockType> blocks;
         FastNoise perlinNoise;
         std::vector<GLfloat> buffer_data;
         bool checkFace(int x, int y, int z);
-        GLint shaders = LoadShaders( "shaders/block_vertex.glsl", "shaders/block_fragment.glsl" );
-
+        GLint shaders;
+        Texture* texture;
+        Camera* camera;
 };

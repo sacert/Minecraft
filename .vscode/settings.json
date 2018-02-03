@@ -29,6 +29,7 @@
         "memory": "cpp",
         "utility": "cpp",
         "type_traits": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "unordered_map": "cpp"
     }
 }
