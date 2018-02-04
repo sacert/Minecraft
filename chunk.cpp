@@ -43,8 +43,8 @@ void Chunk::createChunk() {
 
     // 16 * 256 * 16
     // build chunk map
-    for (int xx = x; xx < CHUNK_SIZE; xx++) {
-        for (int zz = z; zz < CHUNK_SIZE; zz++) {
+    for (int xx = x; xx < (x+CHUNK_SIZE); xx++) {
+        for (int zz = z; zz < (z+CHUNK_SIZE); zz++) {
 
             float height = round(perlinNoise.GetNoise(xx,zz) * 10);
             for (int yy = maxHeight; yy > minHeight; yy--) {
@@ -69,8 +69,8 @@ void Chunk::createChunk() {
     }
 
     // fill chunk vao
-    for (int xx = x; xx < CHUNK_SIZE; xx++) {
-        for (int zz = z; zz < CHUNK_SIZE; zz++) {
+    for (int xx = x; xx < (x+CHUNK_SIZE); xx++) {
+        for (int zz = z; zz < (z+CHUNK_SIZE); zz++) {
             for (int yy = minHeight; yy < maxHeight; yy++) {
 
                 Coordinates coord(xx,yy,zz);
@@ -145,8 +145,8 @@ void Chunk::createChunk() {
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glDisableVertexAttribArray(gVert);
-    glDisableVertexAttribArray(gVertTexCoord);
+    //glDisableVertexAttribArray(gVert);
+    //glDisableVertexAttribArray(gVertTexCoord);
 }
 
 void Chunk::renderChunk() {
@@ -190,7 +190,7 @@ void Chunk::renderChunk() {
 bool Chunk::checkFace(int xx, int yy, int zz) {
 
     // since I don't have a way to look at blocks in different chunks, always render the edge of the chunk blocks
-    if (xx > CHUNK_SIZE || xx < 0 || zz < 0 || zz > CHUNK_SIZE || yy < -(CHUNK_HEIGHT/2) || yy > CHUNK_HEIGHT/2) {
+    if (xx > (x+CHUNK_SIZE) || xx < 0 || zz < 0 || zz > (z+CHUNK_SIZE) || yy < -(CHUNK_HEIGHT/2) || yy > CHUNK_HEIGHT/2) {
         return true;
     }
     return (blocks[Coordinates(xx, yy, zz)] == BlockType::AIR);

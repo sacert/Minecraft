@@ -239,7 +239,7 @@ void RenderCrosshair() {
 }
 
 // draws a single frame
-void Render(Chunk &chunk) {
+void Render(Chunk &chunk, Chunk &chunk1, Chunk &chunk2, Chunk &chunk3) {
 
     // clear everything
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -249,6 +249,9 @@ void Render(Chunk &chunk) {
 
     // render the chunk - check be a list of chunks 
     chunk.renderChunk();
+    chunk1.renderChunk();
+    chunk2.renderChunk();
+    chunk3.renderChunk();
 
     RenderCrosshair();
 
@@ -321,8 +324,14 @@ int main() {
     double fps_prevTime = glfwGetTime();
     int frames = 0;
 
-    // chunk testing - just for 1 currently
-    Chunk chunk(0, 0, &gCamera);
+
+    Chunk chunk2(0, 0, &gCamera);
+    chunk2.createChunk();
+    Chunk chunk1(0, 1, &gCamera);
+    chunk1.createChunk();
+    Chunk chunk3(1, 0, &gCamera);
+    chunk3.createChunk();
+    Chunk chunk(1, 1, &gCamera);
     chunk.createChunk();
 
     while(!glfwWindowShouldClose(gWindow)){
@@ -341,7 +350,7 @@ int main() {
         update_prevTime = update_currTime;
 
         // draw one frame
-        Render(chunk);
+        Render(chunk, chunk1, chunk2, chunk3);
         glfwPollEvents();
 
         // check for errors

@@ -17,7 +17,7 @@ class Chunk {
     private:
         int x;
         int z;
-        int faces;
+        double faces;
         GLuint vbo;
         GLuint vao;
         std::unordered_map<Coordinates, BlockType> blocks;
