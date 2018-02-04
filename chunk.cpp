@@ -189,8 +189,9 @@ void Chunk::renderChunk() {
 // only send block faces that aren't covered to the GPU
 bool Chunk::checkFace(int xx, int yy, int zz) {
 
+    // will have to use chunk manager to find block
     // since I don't have a way to look at blocks in different chunks, always render the edge of the chunk blocks
-    if (xx > (x+CHUNK_SIZE) || xx < 0 || zz < 0 || zz > (z+CHUNK_SIZE) || yy < -(CHUNK_HEIGHT/2) || yy > CHUNK_HEIGHT/2) {
+    if (xx > (x+CHUNK_SIZE) || xx < x || zz < z || zz > (z+CHUNK_SIZE) || yy < -(CHUNK_HEIGHT/2) || yy > CHUNK_HEIGHT/2) {
         return true;
     }
     return (blocks[Coordinates(xx, yy, zz)] == BlockType::AIR);
