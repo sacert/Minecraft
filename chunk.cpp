@@ -22,7 +22,7 @@ Chunk::Chunk(int xx, int zz, Camera *cam) {
 }
 
 Chunk::~Chunk() {
-    delete texture;
+    //delete texture;
 }
 
 void Chunk::createChunk() {

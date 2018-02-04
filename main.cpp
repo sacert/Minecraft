@@ -239,7 +239,7 @@ void RenderCrosshair() {
 }
 
 // draws a single frame
-void Render(Chunk &chunk, Chunk &chunk1, Chunk &chunk2, Chunk &chunk3) {
+void Render(std::vector<Chunk> &chunks) {
 
     // clear everything
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -247,11 +247,10 @@ void Render(Chunk &chunk, Chunk &chunk1, Chunk &chunk2, Chunk &chunk3) {
     // update frustum to current view
     frustum.getFrustum(gCamera.view(), gCamera.projection());
 
-    // render the chunk - check be a list of chunks 
-    chunk.renderChunk();
-    chunk1.renderChunk();
-    chunk2.renderChunk();
-    chunk3.renderChunk();
+    // render the chunks
+    for (int i = 0; i < chunks.size(); i++) {
+        chunks.at(i).renderChunk();
+    }
 
     RenderCrosshair();
 
@@ -324,15 +323,15 @@ int main() {
     double fps_prevTime = glfwGetTime();
     int frames = 0;
 
+    std::vector<Chunk> chunks;
 
-    Chunk chunk2(0, 0, &gCamera);
-    chunk2.createChunk();
-    Chunk chunk1(0, 1, &gCamera);
-    chunk1.createChunk();
-    Chunk chunk3(1, 0, &gCamera);
-    chunk3.createChunk();
-    Chunk chunk(1, 1, &gCamera);
-    chunk.createChunk();
+    for (int i = -1; i < 1; i++) {
+        for (int j = -1; j < 1; j++) {
+            Chunk chunk(i, j, &gCamera);
+            chunk.createChunk();
+            chunks.push_back(chunk); 
+        }
+    }
 
     while(!glfwWindowShouldClose(gWindow)){
 
@@ -350,7 +349,7 @@ int main() {
         update_prevTime = update_currTime;
 
         // draw one frame
-        Render(chunk, chunk1, chunk2, chunk3);
+        Render(chunks);
         glfwPollEvents();
 
         // check for errors
