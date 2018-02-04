@@ -144,6 +144,9 @@ void Chunk::createChunk() {
     // unbind VAO and VBO 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glDisableVertexAttribArray(gVert);
+    glDisableVertexAttribArray(gVertTexCoord);
 }
 
 void Chunk::renderChunk() {
