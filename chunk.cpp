@@ -21,6 +21,10 @@ Chunk::Chunk(int xx, int zz, Camera *cam) {
     camera = cam;
 }
 
+void Chunk::updateChunk() {
+    
+}
+
 void Chunk::createChunk() {
 
     // height between -128 to 128
@@ -146,6 +150,7 @@ void Chunk::createChunk() {
 }
 
 void Chunk::renderChunk() {
+    
     glUseProgram(shaders);
 
     // // bind the texture and set the "tex" uniform in the fragment shader -- *** could I potentially just bind once since I'm only using 1 texture file? ***
@@ -193,6 +198,14 @@ bool Chunk::checkFace(int xx, int yy, int zz) {
     return (blocks[Coordinates(xx, yy, zz)] == BlockType::AIR);
 }
 
-std::unordered_map<Coordinates, BlockType> Chunk::getBlocks() {
-    return blocks;
+void Chunk::addBlock(Coordinates blockCoord, BlockType bt) {
+    blocks[Coordinates(blockCoord.x, blockCoord.y, blockCoord.z)] = bt;
 }
+
+void Chunk::removeBlock(Coordinates blockCoord) {
+    blocks.erase(blockCoord);
+}
+
+// std::unordered_map<Coordinates, BlockType> Chunk::getBlocks() {
+//     return &blocks;
+// }

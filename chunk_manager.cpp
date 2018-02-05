@@ -16,8 +16,29 @@ void ChunkManager::addChunk(Coordinates chunkCoord) {
     //else 
     //chunk.retrieveChunk();
 
-    std::unordered_map<Coordinates, Chunk> chunks;
     chunks.insert(std::make_pair(chunkCoord, chunk));
+
+}
+
+void ChunkManager::addBlock(Coordinates blockCoord, BlockType bt) {
+    
+    Coordinates aCoord(blockCoord.x/16, blockCoord.y/16, blockCoord.z/16);
+    Chunk * chunk = &chunks.at(aCoord);
+    chunk->addBlock(blockCoord, bt);
+    chunk->updateChunk();
+}
+
+void ChunkManager::removeBlock(Coordinates blockCoord) {
+    
+    Coordinates aCoord(blockCoord.x/16, blockCoord.y/16, blockCoord.z/16);
+    Chunk * chunk = &chunks.at(aCoord);
+    chunk->removeBlock(blockCoord);
+}
+
+Chunk ChunkManager::findChunk(Coordinates chunkCoord) {
+
+    std::unordered_map<Coordinates, Chunk>::const_iterator got = chunks.find (chunkCoord);
+    return got->second;
 }
 
 void ChunkManager::removeChunk(Coordinates chunkCoord) {
@@ -25,6 +46,7 @@ void ChunkManager::removeChunk(Coordinates chunkCoord) {
 }
 
 void ChunkManager::renderChunks() {
-    for ( auto it = chunks.begin(); it != chunks.end(); ++it )
+    for ( auto it = chunks.begin(); it != chunks.end(); ++it ) {
        it->second.renderChunk();
+    }
 }

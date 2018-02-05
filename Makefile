@@ -36,7 +36,7 @@ block.o: block.cpp block.h
 chunk.o: chunk.cpp chunk.h
 	g++ -c -o chunk.o chunk.cpp
 
-chunk.o: chunk_manager.cpp chunk_manager.h
+chunk_manager.o: chunk_manager.cpp chunk_manager.h
 	g++ -c -o chunk_manager.o chunk_manager.cpp
 
 util.o: util.cpp util.h

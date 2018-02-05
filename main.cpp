@@ -239,7 +239,7 @@ void RenderCrosshair() {
 }
 
 // draws a single frame
-void Render(std::vector<Chunk> &chunks) {
+void Render(ChunkManager &cm) {
 
     // clear everything
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -247,10 +247,7 @@ void Render(std::vector<Chunk> &chunks) {
     // update frustum to current view
     frustum.getFrustum(gCamera.view(), gCamera.projection());
 
-    // render the chunks
-    for (int i = 0; i < chunks.size(); i++) {
-        chunks.at(i).renderChunk();
-    }
+    cm.renderChunks();
 
     RenderCrosshair();
 
@@ -323,13 +320,13 @@ int main() {
     double fps_prevTime = glfwGetTime();
     int frames = 0;
 
-    std::vector<Chunk> chunks;
+    // chunk manager holds all chunks and deals with them
+    ChunkManager cm(&gCamera);
 
+    // itialize basic blocks - mainly just for testing here
     for (int i = -1; i < 1; i++) {
         for (int j = -1; j < 1; j++) {
-            Chunk chunk(i, j, &gCamera);
-            chunk.createChunk();
-            chunks.push_back(chunk); 
+            cm.addChunk(Coordinates(i,0,j));
         }
     }
 
@@ -349,7 +346,7 @@ int main() {
         update_prevTime = update_currTime;
 
         // draw one frame
-        Render(chunks);
+        Render(cm);
         glfwPollEvents();
 
         // check for errors
