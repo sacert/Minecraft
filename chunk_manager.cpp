@@ -1,5 +1,6 @@
 #include "chunk_manager.h"
 #include <iostream>
+#include <cmath>
 
 ChunkManager::ChunkManager(Camera *cam) {
     camera = cam;
@@ -22,17 +23,30 @@ void ChunkManager::addChunk(Coordinates chunkCoord) {
 
 void ChunkManager::addBlock(Coordinates blockCoord, BlockType bt) {
     
-    Coordinates aCoord(blockCoord.x/16, blockCoord.y/16, blockCoord.z/16);
+    Coordinates aCoord(floor((blockCoord.x-16)/16), 0, floor((blockCoord.z-16)/16));
     Chunk * chunk = &chunks.at(aCoord);
     chunk->addBlock(blockCoord, bt);
-    chunk->updateChunk();
+    chunk->updateBlock(blockCoord);
 }
 
 void ChunkManager::removeBlock(Coordinates blockCoord) {
     
-    Coordinates aCoord(blockCoord.x/16, blockCoord.y/16, blockCoord.z/16);
+    Coordinates aCoord(floor((blockCoord.x-16)/16), 0, floor((blockCoord.z-16)/16));
     Chunk * chunk = &chunks.at(aCoord);
     chunk->removeBlock(blockCoord);
+    chunk->updateBlock(blockCoord);
+}
+
+BlockType ChunkManager::getBlock(Coordinates blockCoord) {
+    Coordinates aCoord(floor((blockCoord.x-16)/16), 0, floor((blockCoord.z-16)/16));
+
+    auto it=chunks.find(aCoord);
+    if (it==chunks.end()) 
+        return BlockType::AIR;
+    return it->second.getBlock(blockCoord);
+
+    // Chunk *chunk = &chunks.at(aCoord);
+    // return chunk->getBlock(blockCoord);
 }
 
 Chunk ChunkManager::findChunk(Coordinates chunkCoord) {

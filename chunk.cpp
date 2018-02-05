@@ -21,8 +21,102 @@ Chunk::Chunk(int xx, int zz, Camera *cam) {
     camera = cam;
 }
 
-void Chunk::updateChunk() {
-    
+void Chunk::updateBlock(Coordinates blockCoord) {
+    // height between -128 to 128
+    int maxHeight = CHUNK_HEIGHT/2;
+    int minHeight = -maxHeight;
+
+    glGenBuffers(1, &vbo);
+    glGenVertexArrays(1, &vao);
+
+    // Vertex Array Object - will cause everything underneath to be bound to the VAO
+    // Makes it so you can just bind VAO and all corresponding will be loaded as well
+	glBindVertexArray(vao);
+
+    // Vertex Buffer Object
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    buffer_data.clear();
+
+    // fill chunk vao
+    for (int xx = x; xx < (x+CHUNK_SIZE); xx++) {
+        for (int zz = z; zz < (z+CHUNK_SIZE); zz++) {
+            for (int yy = minHeight; yy < maxHeight; yy++) {
+
+                Coordinates coord(xx,yy,zz);
+                BlockType bt = blocks[coord];
+
+                if (bt != BlockType::AIR) {
+                    // top
+                    if (checkFace(xx,yy+1,zz)) {
+                        addTopFace(buffer_data, coord, bt);
+                        faces++;
+                    }
+                    // bottom
+                    if (checkFace(xx,yy-1,zz)) {
+                        addBottomFace(buffer_data, coord, bt);
+                        faces++;
+                    }
+                    // right
+                    if (checkFace(xx+1,yy,zz)) {
+                        addRightFace(buffer_data, coord, bt);
+                        faces++;
+                    }
+                    // left
+                    if (checkFace(xx-1,yy,zz)) {
+                        addLeftFace(buffer_data, coord, bt);
+                        faces++;
+                    }
+                    // front
+                    if (checkFace(xx,yy,zz+1)) {
+                        addFrontFace(buffer_data, coord, bt);
+                        faces++;
+                    }
+                    // back
+                    if (checkFace(xx,yy,zz-1)) {
+                        addBackFace(buffer_data, coord, bt);
+                        faces++;
+                    }
+                }
+            }
+        }
+    }
+
+    // Give our vertices and UVs to OpenGL.
+    glBufferData(GL_ARRAY_BUFFER, buffer_data.size() * sizeof(GLfloat), buffer_data.data(), GL_STATIC_DRAW);
+
+    // Set the variable 'vert' in vertex shader 
+    // Equals to the vertices for the block
+    GLuint gVert = glGetAttribLocation(shaders, "vert");
+    glEnableVertexAttribArray(gVert);
+    glVertexAttribPointer(
+        0,                  // attribute 0
+        3,                  // size
+        GL_FLOAT,           // type
+        GL_FALSE,           // normalized?
+        5*sizeof(GLfloat),  // stride
+        (void*)0            // array buffer offset
+    );
+
+    // Set the variable 'vertTexCoord' in vertex shader 
+    // Equals to the UV values for corresponding vertices to the block
+    GLuint gVertTexCoord = glGetAttribLocation(shaders, "vertTexCoord");
+    glEnableVertexAttribArray(gVertTexCoord);
+    glVertexAttribPointer(
+        1,                  // attribute 1
+        2,                  // size
+        GL_FLOAT,           // type
+        GL_FALSE,           // normalized?
+        5*sizeof(GLfloat),  // stride
+        (const GLvoid*)(3 * sizeof(GLfloat))    // array buffer offset
+    );
+
+    // unbind VAO and VBO 
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //glDisableVertexAttribArray(gVert);
+    //glDisableVertexAttribArray(gVertTexCoord);
 }
 
 void Chunk::createChunk() {
@@ -199,13 +293,14 @@ bool Chunk::checkFace(int xx, int yy, int zz) {
 }
 
 void Chunk::addBlock(Coordinates blockCoord, BlockType bt) {
-    blocks[Coordinates(blockCoord.x, blockCoord.y, blockCoord.z)] = bt;
+    blocks.at(Coordinates(blockCoord.x, blockCoord.y, blockCoord.z)) = bt;
 }
 
 void Chunk::removeBlock(Coordinates blockCoord) {
     blocks.erase(blockCoord);
 }
 
-// std::unordered_map<Coordinates, BlockType> Chunk::getBlocks() {
-//     return &blocks;
-// }
+BlockType Chunk::getBlock(Coordinates blockCoord) {
+    
+    return blocks[blockCoord];
+}

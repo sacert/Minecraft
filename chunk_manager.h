@@ -8,6 +8,7 @@ class ChunkManager {
         void updateChunks();                        // as the player moves, add/remove chunks to fit rendering distance + dirty chunk
         void addBlock(Coordinates blockCoord, BlockType bt);      // puts block in corresponding chunk (x, y, z are true)
         void removeBlock(Coordinates blockCoord);   // delete block in corresponding chunk
+        BlockType getBlock(Coordinates blockCoord);
         Chunk findChunk(Coordinates chunkCoord);    // used by add/removeBlock
         void addChunk(Coordinates chunkCoord);
         void removeChunk(Coordinates chunkCoord);

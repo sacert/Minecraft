@@ -12,9 +12,9 @@ class Chunk {
     public:
         Chunk(int x, int z, Camera *cam);
         void createChunk();
-        void updateChunk();
+        void updateBlock(Coordinates blockCoord);
         void renderChunk();
-        std::unordered_map<Coordinates, BlockType> getBlocks();
+        BlockType getBlock(Coordinates blockCoord);
         int getX() const {return x;}
         int getZ() const {return z;}
         void addBlock(Coordinates blockCoord, BlockType bt);
