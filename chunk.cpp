@@ -21,10 +21,6 @@ Chunk::Chunk(int xx, int zz, Camera *cam) {
     camera = cam;
 }
 
-Chunk::~Chunk() {
-    //delete texture;
-}
-
 void Chunk::createChunk() {
 
     // height between -128 to 128

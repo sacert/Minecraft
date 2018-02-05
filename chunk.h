@@ -10,10 +10,11 @@
 class Chunk {
     public:
         Chunk(int x, int z, Camera *cam);
-        ~Chunk();
         void createChunk();
         void renderChunk();
         std::unordered_map<Coordinates, BlockType> getBlocks();
+        int getX() const {return x;}
+        int getZ() const {return z;}
     private:
         int x;
         int z;

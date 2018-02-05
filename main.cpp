@@ -25,8 +25,8 @@
 #include "camera.h"
 #include "skybox.h"
 #include "frustum.h"
-#include "chunk.h"
 #include "util.h"
+#include "chunk_manager.h"
 #include "libraries/stb_image.h"
 #include "libraries/FastNoise.h"
 
