@@ -4,6 +4,8 @@
 #include "texture.h"
 #include "camera.h"
 #include <iostream>
+#include "frustum.h"
+
 
 #define CHUNK_SIZE 16 // x & z
 #define CHUNK_HEIGHT 256 // y
@@ -34,4 +36,5 @@ class Chunk {
         Texture* texture;
         Camera* camera;
         BlockType*** blocksA;
+        Frustum frustum;
 };

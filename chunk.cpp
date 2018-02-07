@@ -309,6 +309,29 @@ void Chunk::createChunk() {
 }
 
 void Chunk::renderChunk() {
+
+     int maxHeight = CHUNK_HEIGHT/2;
+    int minHeight = -maxHeight;
+
+    // update frustum to current view
+    frustum.getFrustum(camera->view(), camera->projection());
+
+    int blockFound = 0;
+
+    // check if a block in a chunk is within the view; if so, render the chunk
+    for (int xx = x; xx < (x+CHUNK_SIZE); xx++) {
+        for (int zz = z; zz < (z+CHUNK_SIZE); zz++) {
+           
+            if (frustum.cubeInFrustum(xx, 0, zz, 1)) {
+                blockFound = 1;
+                break;
+            }
+        }
+    }
+
+    // if no blocks are in the view, dont render the chunk
+    if (!blockFound)
+        return;
     
     glUseProgram(shaders);
 
@@ -377,7 +400,7 @@ bool Chunk::checkFace(int xx, int yy, int zz) {
     if (xx < 0 || xx > 15 || yy < 0 || yy > 255 || zz < 0 || zz > 15) {
             //std::cout << xx << " " << yy << " " << zz << std::endl;
 
-        return true;
+        return false;
     }
 
     return (blocksA[int(xx)][int(yy)][int(zz)] == BlockType::AIR);
