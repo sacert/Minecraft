@@ -10,7 +10,8 @@
 
 class Chunk {
     public:
-        Chunk(int x, int z, Camera *cam);
+        Chunk(int x, int z, Camera *cam, BlockType ***block);
+        ~Chunk();
         void createChunk();
         void updateBlock(Coordinates blockCoord);
         void renderChunk();
@@ -19,7 +20,7 @@ class Chunk {
         int getZ() const {return z;}
         void addBlock(Coordinates blockCoord, BlockType bt);
         void removeBlock(Coordinates blockCoord);
-    private:
+    private:   
         int x;
         int z;
         double faces;
@@ -32,4 +33,5 @@ class Chunk {
         GLint shaders;
         Texture* texture;
         Camera* camera;
+        BlockType*** blocksA;
 };
