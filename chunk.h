@@ -19,6 +19,7 @@ class Chunk {
         void updateChunk(Chunk* neighbours);
         void renderChunk();
         BlockType getBlock(Coordinates blockCoord);
+        BlockType getBlockNormalized(Coordinates blockCoord);
         void addBlock(Coordinates blockCoord, BlockType bt);
         void removeBlock(Coordinates blockCoord);
         bool checkFace(int x, int y, int z);

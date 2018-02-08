@@ -24,7 +24,6 @@
 #include "bitmap.h"
 #include "camera.h"
 #include "skybox.h"
-#include "frustum.h"
 #include "util.h"
 #include "chunk_manager.h"
 #include "libraries/stb_image.h"
@@ -151,8 +150,6 @@ void Update(float secondsElapsed, ChunkManager &cm) {
         
         cd = Coordinates(floor(line.x), floor(line.y), floor(line.z));
 
-        //std::cout << cm.getBlock(cd) << std::endl;
-
         // keep a track of the previous position
         if (!cm.getBlock(cd)) {
             prevLine = line;
@@ -183,28 +180,22 @@ void Update(float secondsElapsed, ChunkManager &cm) {
         }
     }
 
-    // int stateRight = glfwGetMouseButton(gWindow, GLFW_MOUSE_BUTTON_RIGHT);
-    // if (stateRight == GLFW_PRESS && rightMousePressed == 0){
-    //     if (map.count(cd)) {
-    //         // insert a dirt block for testing -- will later replace with player's inventory 
-    //         BlockInstance block;
-    //         block.asset = &gDirtBlock;
-    //         block.selected = 0;
-    //         block.position = glm::translate(glm::mat4(1.0f),glm::vec3((int)floor(prevBlock.x),(int)floor(prevBlock.y),(int)floor(prevBlock.z)));
-    //         block.cartCoord = glm::vec3((int)floor(prevBlock.x),(int)floor(prevBlock.y),(int)floor(prevBlock.z));
-    //         map[Coordinates((int)floor(prevBlock.x),(int)floor(prevBlock.y),(int)floor(prevBlock.z))] = block;
-    //         gInstances.push_back(block);
-    //         rightMousePressed = 1;
-    //     } 
-    // }
+    int stateRight = glfwGetMouseButton(gWindow, GLFW_MOUSE_BUTTON_RIGHT);
+    if (stateRight == GLFW_PRESS && rightMousePressed == 0){
+        if (cm.getBlock(cd)) {
+            Coordinates cs = Coordinates(floor(prevLine.x), floor(prevLine.y), floor(prevLine.z));
+            cm.addBlock(Coordinates(cs.x, cs.y, cs.z), BlockType::DIRT);
+            rightMousePressed = 1;
+        }
+    }
 
     if (stateLeft == GLFW_RELEASE) {
         leftMousePressed = 0;
     }
 
-    // if (stateRight == GLFW_RELEASE) {
-    //     rightMousePressed = 0;
-    // }
+    if (stateRight == GLFW_RELEASE) {
+        rightMousePressed = 0;
+    }
 
 
     //rotate camera based on mouse movement
@@ -327,15 +318,15 @@ int main() {
     ChunkManager cm(&gCamera);
 
     // itialize basic blocks - mainly just for testing here
-    for (int i = -1; i < 1; i++) {
-        for (int j = -1; j < 1; j++) {
+    for (int i = -2; i < 2; i++) {
+        for (int j = -2; j < 2; j++) {
             cm.addChunk(Coordinates(i,0,j));
         }
     }
 
     // itialize basic blocks - mainly just for testing here
-    for (int i = -1; i < 1; i++) {
-        for (int j = -1; j < 1; j++) {
+    for (int i = -2; i < 2; i++) {
+        for (int j = -2; j < 2; j++) {
             cm.updateChunk(Coordinates(i,0,j));
         }
     }

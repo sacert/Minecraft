@@ -373,32 +373,54 @@ bool Chunk::checkNeighbour(int x, int y, int z) {
 
     // right
     if (x > 15 && !neighbours[0].isEmpty()) 
-        return neighbours[0].getBlock(Coordinates(0, y, z)) == BlockType::AIR;
+        return neighbours[0].getBlockNormalized(Coordinates(0, y, z)) == BlockType::AIR;
 
     // left
     if (x < 0 && !neighbours[1].isEmpty()) 
-        return neighbours[1].getBlock(Coordinates(15, y, z)) == BlockType::AIR;
+        return neighbours[1].getBlockNormalized(Coordinates(15, y, z)) == BlockType::AIR;
 
     // front
     if (z > 15 && !neighbours[2].isEmpty()) 
-        return neighbours[2].getBlock(Coordinates(x, y, 0)) == BlockType::AIR;
+        return neighbours[2].getBlockNormalized(Coordinates(x, y, 0)) == BlockType::AIR;
 
     // back
     if (z < 0 && !neighbours[3].isEmpty()) 
-        return neighbours[3].getBlock(Coordinates(x, y, 15)) == BlockType::AIR;
+        return neighbours[3].getBlockNormalized(Coordinates(x, y, 15)) == BlockType::AIR;
 
     return true;
 }
 
 void Chunk::addBlock(Coordinates blockCoord, BlockType bt) {
-    blocks[blockCoord.x][blockCoord.y][blockCoord.z] = bt;
+
+     // convert to 0 .. 15 / 255
+    int block_x = blockCoord.x - chunk_x;
+    int block_y = blockCoord.y + CHUNK_HEIGHT/2;
+    int block_z = blockCoord.z - chunk_z;
+
+    blocks[block_x][block_y][block_z] = bt;
 }
 
 void Chunk::removeBlock(Coordinates blockCoord) {
-    blocks[blockCoord.x][blockCoord.y][blockCoord.z] = BlockType::AIR;
+
+    // convert to 0 .. 15 / 255
+    int block_x = blockCoord.x - chunk_x;
+    int block_y = blockCoord.y + CHUNK_HEIGHT/2;
+    int block_z = blockCoord.z - chunk_z;
+
+    blocks[block_x][block_y][block_z] = BlockType::AIR;
 }
 
 BlockType Chunk::getBlock(Coordinates blockCoord) {
-    //return blocks[blockCoord.x][blockCoord.y][blockCoord.z];
-    return BlockType::GRASS;
+
+    // convert to 0 .. 15 / 255
+    int block_x = blockCoord.x - chunk_x;
+    int block_y = blockCoord.y + CHUNK_HEIGHT/2;
+    int block_z = blockCoord.z - chunk_z;
+
+    return blocks[block_x][block_y][block_z];
+}
+
+BlockType Chunk::getBlockNormalized(Coordinates blockCoord) {
+
+    return blocks[blockCoord.x][blockCoord.y][blockCoord.z];
 }

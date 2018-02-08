@@ -32,18 +32,52 @@ void ChunkManager::addChunk(Coordinates chunkCoord) {
 
 void ChunkManager::addBlock(Coordinates blockCoord, BlockType bt) {
     
-    Coordinates aCoord(floor((blockCoord.x-16)/16), 0, floor((blockCoord.z-16)/16));
-    Chunk * chunk = &chunks.at(aCoord);
-    chunk->addBlock(blockCoord, bt);    
-    chunk->updateChunk(getNeighbours(aCoord));
+    int x = blockCoord.x;
+    int z = blockCoord.z;
+    while(1) {
+        if (x  % 16 == 0) {
+            break;
+        }
+        x--;
+    }
+
+    while(1) {
+        if (z  % 16 == 0) {
+            break;
+        }
+        z--;
+    }
+    Coordinates aCoord(x/16, 0, z/16);
+
+    auto it=chunks.find(aCoord);
+    if (it==chunks.end()) 
+        return;
+    it->second.addBlock(blockCoord, bt);
+    it->second.updateChunk(getNeighbours(aCoord));
 }
 
 void ChunkManager::removeBlock(Coordinates blockCoord) {
-    
-    Coordinates aCoord(floor((blockCoord.x-16)/16), 0, floor((blockCoord.z-16)/16));
-    Chunk * chunk = &chunks.at(aCoord);
-    chunk->removeBlock(blockCoord);
-    chunk->updateChunk(getNeighbours(aCoord));
+    int x = blockCoord.x;
+    int z = blockCoord.z;
+    while(1) {
+        if (x  % 16 == 0) {
+            break;
+        }
+        x--;
+    }
+
+    while(1) {
+        if (z  % 16 == 0) {
+            break;
+        }
+        z--;
+    }
+    Coordinates aCoord(x/16, 0, z/16);
+    auto it=chunks.find(aCoord);
+    if (it==chunks.end()) 
+        return;
+    it->second.removeBlock(blockCoord);
+    it->second.updateChunk(getNeighbours(aCoord));
 }
 
 void ChunkManager::updateChunk(Coordinates chunkCoord) {
@@ -91,16 +125,33 @@ Chunk* ChunkManager::getNeighbours(Coordinates chunkCoord) {
 }
 
 BlockType ChunkManager::getBlock(Coordinates blockCoord) {
-    Coordinates aCoord(floor((blockCoord.x-16)/16), 0, floor((blockCoord.z-16)/16));
+
+    int x = blockCoord.x;
+    int z = blockCoord.z;
+    while(1) {
+        if (x  % 16 == 0) {
+            break;
+        }
+        x--;
+    }
+
+    while(1) {
+        if (z  % 16 == 0) {
+            break;
+        }
+        z--;
+    }
+    int xx = x /16;
+    int zz = z /16;
+    Coordinates aCoord(xx, 0, zz); 
+
+    //std::cout << aCoord.x << " " << aCoord.y << " " <<aCoord.z << std::endl;
 
     // need to check if chunk is even there -- impossible once chunks are generated around user
     auto it=chunks.find(aCoord);
     if (it==chunks.end()) 
         return BlockType::AIR;
     return it->second.getBlock(blockCoord);
-
-    // Chunk *chunk = &chunks.at(aCoord);
-    // return chunk->getBlock(blockCoord);
 }
 
 Chunk ChunkManager::findChunk(Coordinates chunkCoord) {
