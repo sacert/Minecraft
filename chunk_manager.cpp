@@ -34,8 +34,8 @@ void ChunkManager::addBlock(Coordinates blockCoord, BlockType bt) {
     
     Coordinates aCoord(floor((blockCoord.x-16)/16), 0, floor((blockCoord.z-16)/16));
     Chunk * chunk = &chunks.at(aCoord);
-    chunk->addBlock(blockCoord, bt);
-    chunk->updateBlock(blockCoord);
+    chunk->addBlock(blockCoord, bt);    
+    chunk->updateChunk(getNeighbours(aCoord));
 }
 
 void ChunkManager::removeBlock(Coordinates blockCoord) {
@@ -43,7 +43,51 @@ void ChunkManager::removeBlock(Coordinates blockCoord) {
     Coordinates aCoord(floor((blockCoord.x-16)/16), 0, floor((blockCoord.z-16)/16));
     Chunk * chunk = &chunks.at(aCoord);
     chunk->removeBlock(blockCoord);
-    chunk->updateBlock(blockCoord);
+    chunk->updateChunk(getNeighbours(aCoord));
+}
+
+void ChunkManager::updateChunk(Coordinates chunkCoord) {
+    Chunk* chunk = &chunks.at(chunkCoord);
+    chunk->updateChunk(getNeighbours(chunkCoord));
+}
+
+// get the neighbouring chunks and return in an array
+Chunk* ChunkManager::getNeighbours(Coordinates chunkCoord) {
+
+    // 0 = right
+    // 1 = left
+    // 2 = front
+    // 3 = back
+
+    Chunk* neighbours = new Chunk[4];
+    
+    std::unordered_map<Coordinates, Chunk>::const_iterator got;
+    
+    Coordinates coordRight(chunkCoord.x+1, chunkCoord.y, chunkCoord.z);
+    got = chunks.find(coordRight);
+
+    if ( got != chunks.end() ) 
+        neighbours[0] = got->second;
+    
+    Coordinates coordLeft(chunkCoord.x-1, chunkCoord.y, chunkCoord.z);
+    got = chunks.find(coordLeft);
+
+    if ( got != chunks.end() ) 
+        neighbours[1] = got->second;
+
+    Coordinates coordFront(chunkCoord.x, chunkCoord.y, chunkCoord.z+1);
+    got = chunks.find(coordFront);
+
+    if ( got != chunks.end() ) 
+        neighbours[2] = got->second;
+    
+    Coordinates coordBehind(chunkCoord.x, chunkCoord.y, chunkCoord.z-1);
+    got = chunks.find(coordBehind);
+
+    if ( got != chunks.end() ) 
+        neighbours[3] = got->second;
+
+    return neighbours;
 }
 
 BlockType ChunkManager::getBlock(Coordinates blockCoord) {

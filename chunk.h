@@ -3,8 +3,8 @@
 #include "shader.h"
 #include "texture.h"
 #include "camera.h"
-#include <iostream>
 #include "frustum.h"
+#include <iostream>
 
 
 #define CHUNK_SIZE 16 // x & z
@@ -12,29 +12,34 @@
 
 class Chunk {
     public:
+        Chunk();
         Chunk(int x, int z, Camera *cam, BlockType ***block);
         ~Chunk();
         void createChunk();
-        void updateBlock(Coordinates blockCoord);
+        void updateChunk(Chunk* neighbours);
         void renderChunk();
         BlockType getBlock(Coordinates blockCoord);
-        int getX() const {return x;}
-        int getZ() const {return z;}
         void addBlock(Coordinates blockCoord, BlockType bt);
         void removeBlock(Coordinates blockCoord);
+        bool checkFace(int x, int y, int z);
+        bool checkNeighbour(int x, int y, int z);
+        int getX() {return chunk_x;}
+        int getY() {return chunk_z;}
+        int isEmpty() {return empty;}
     private:   
-        int x;
-        int z;
+        int chunk_x;
+        int chunk_z;
         double faces;
         GLuint vbo;
         GLuint vao;
-        std::unordered_map<Coordinates, BlockType> blocks;
+        std::unordered_map<Coordinates, BlockType> l;
         FastNoise perlinNoise;
         std::vector<GLfloat> buffer_data;
-        bool checkFace(int x, int y, int z);
         GLint shaders;
         Texture* texture;
         Camera* camera;
-        BlockType*** blocksA;
+        BlockType*** blocks;
         Frustum frustum;
+        Chunk* neighbours;
+        bool empty;
 };

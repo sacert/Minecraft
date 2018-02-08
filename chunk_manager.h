@@ -13,6 +13,8 @@ class ChunkManager {
         void addChunk(Coordinates chunkCoord);
         void removeChunk(Coordinates chunkCoord);
         void renderChunks();                        // when rendering chunks, pass camera  
+        Chunk* getNeighbours(Coordinates chunkCoord);
+        void updateChunk(Coordinates chunkCoord);
     private:
         // will need player position to add and remove chunks for the render distance
         float player_x;
