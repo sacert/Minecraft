@@ -305,23 +305,39 @@ void Chunk::renderChunk() {
     // update frustum to current view
     frustum.getFrustum(camera->view(), camera->projection());
 
-    int blockFound = 0;
-
-    // check if a block in a chunk is within the view; if so, render the chunk
-    for (int x = chunk_x; x < (chunk_x+CHUNK_SIZE); x++) {
-        for (int z = chunk_z; z < (chunk_z+CHUNK_SIZE); z++) {
-           
-            if (frustum.cubeInFrustum(x, 0, z, 1)) {
-                blockFound = 1;
-                break;
-            }
-        }
+    int found = 0;
+    for (int i = 0; i < 16; i++) {
+        if ((frustum.cubeInFrustum(chunk_x,minHeight + (i*16),chunk_z,chunk_x+CHUNK_SIZE,minHeight + ((i+1)*16) -1,chunk_z + CHUNK_SIZE, CHUNK_SIZE/2))) {
+            found = 1;
+            break;
+        } 
     }
 
-    // if no blocks are in the view, dont render the chunk
-    if (!blockFound)
+    if (!found)
         return;
+
+    // // // check if a block in a chunk is within the view; if so, render the chunk
+    // if (!(frustum.cubeInFrustum(chunk_x,-128,chunk_z,chunk_x+16, -113,chunk_z + 16, CHUNK_SIZE/2) || 
+    // (frustum.cubeInFrustum(chunk_x,-112,chunk_z,chunk_x+16, -97,chunk_z + 16, CHUNK_SIZE/2)) || 
+    // (frustum.cubeInFrustum(chunk_x,-96,chunk_z,chunk_x+16, -81,chunk_z + 16, CHUNK_SIZE/2)) ||
+    // (frustum.cubeInFrustum(chunk_x,-80,chunk_z,chunk_x+16, -65,chunk_z + 16, CHUNK_SIZE/2))|| 
+    // (frustum.cubeInFrustum(chunk_x,-64,chunk_z,chunk_x+16, -49,chunk_z + 16, CHUNK_SIZE/2))|| 
+    // (frustum.cubeInFrustum(chunk_x,-48,chunk_z,chunk_x+16, -33,chunk_z + 16, CHUNK_SIZE/2))|| 
+    // (frustum.cubeInFrustum(chunk_x,-32,chunk_z,chunk_x+16, -17,chunk_z + 16, CHUNK_SIZE/2))||
+    // (frustum.cubeInFrustum(chunk_x,-16,chunk_z,chunk_x+16, -1,chunk_z + 16, CHUNK_SIZE/2))||
+    // (frustum.cubeInFrustum(chunk_x,0,chunk_z,chunk_x+16, 15,chunk_z + 16, CHUNK_SIZE/2))||
+    // (frustum.cubeInFrustum(chunk_x,16,chunk_z,chunk_x+16, 31,chunk_z + 16, CHUNK_SIZE/2))||
+    // (frustum.cubeInFrustum(chunk_x,32,chunk_z,chunk_x+16, 47,chunk_z + 16, CHUNK_SIZE/2))||
+    // (frustum.cubeInFrustum(chunk_x,48,chunk_z,chunk_x+16, 63,chunk_z + 16, CHUNK_SIZE/2))||
+    // (frustum.cubeInFrustum(chunk_x,64,chunk_z,chunk_x+16, 79,chunk_z + 16, CHUNK_SIZE/2))||
+    // (frustum.cubeInFrustum(chunk_x,80,chunk_z,chunk_x+16, 95,chunk_z + 16, CHUNK_SIZE/2))||
+    // (frustum.cubeInFrustum(chunk_x,96,chunk_z,chunk_x+16, 111,chunk_z + 16, CHUNK_SIZE/2))||
+    // (frustum.cubeInFrustum(chunk_x,112,chunk_z,chunk_x+16, 127,chunk_z + 16, CHUNK_SIZE/2)))) {
+    //     return;
+    // } 
     
+
+    chunksNum++;
     glUseProgram(shaders);
 
     // // bind the texture and set the "tex" uniform in the fragment shader -- *** could I potentially just bind once since I'm only using 1 texture file? ***
@@ -357,6 +373,8 @@ void Chunk::renderChunk() {
     // unbind the program
     glUseProgram(0);
 }
+
+int Chunk::chunksNum;
 
 // only send block faces that aren't covered to the GPU
 bool Chunk::checkFace(int x, int y, int z) {

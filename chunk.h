@@ -27,6 +27,7 @@ class Chunk {
         int getX() {return chunk_x;}
         int getY() {return chunk_z;}
         int isEmpty() {return empty;}
+        static int chunksNum;
     private:   
         int chunk_x;
         int chunk_z;
