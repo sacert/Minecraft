@@ -238,9 +238,6 @@ void Render(ChunkManager &cm) {
     // clear everything
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    // update frustum to current view
-    frustum.getFrustum(gCamera.view(), gCamera.projection());
-
     cm.renderChunks();
 
     RenderCrosshair();
@@ -252,7 +249,7 @@ void Render(ChunkManager &cm) {
     
     // swap the display buffers (displays what was just drawn)
     glfwSwapBuffers(gWindow);
-    
+
 }
 
 int main() {

@@ -54,6 +54,16 @@ void ChunkManager::addBlock(Coordinates blockCoord, BlockType bt) {
         return;
     it->second.addBlock(blockCoord, bt);
     it->second.updateChunk(getNeighbours(aCoord));
+    Chunk* neighbours = it->second.getNeighbours();
+    for (int i = 0; i < 4; i++) {
+        Coordinates aCoord(neighbours[i].getX()/16, 0, neighbours[i].getZ()/16);
+        auto itt=chunks.find(aCoord);
+        if (itt==chunks.end()) 
+            continue;
+        if (!(itt->second.isEmpty())) {
+            itt->second.updateChunk(getNeighbours(Coordinates(itt->second.getX()/16, 0, itt->second.getZ()/16)));
+        }
+    }
 }
 
 void ChunkManager::removeBlock(Coordinates blockCoord) {
@@ -78,6 +88,16 @@ void ChunkManager::removeBlock(Coordinates blockCoord) {
         return;
     it->second.removeBlock(blockCoord);
     it->second.updateChunk(getNeighbours(aCoord));
+    Chunk* neighbours = it->second.getNeighbours();
+    for (int i = 0; i < 4; i++) {
+        Coordinates aCoord(neighbours[i].getX()/16, 0, neighbours[i].getZ()/16);
+        auto itt=chunks.find(aCoord);
+        if (itt==chunks.end()) 
+            continue;
+        if (!(itt->second.isEmpty())) {
+            itt->second.updateChunk(getNeighbours(Coordinates(itt->second.getX()/16, 0, itt->second.getZ()/16)));
+        }
+    }
 }
 
 void ChunkManager::updateChunk(Coordinates chunkCoord) {
@@ -165,10 +185,10 @@ void ChunkManager::removeChunk(Coordinates chunkCoord) {
 }
 
 void ChunkManager::renderChunks() {
+
     Chunk::chunksNum = 0;
     for ( auto it = chunks.begin(); it != chunks.end(); ++it ) {
        it->second.renderChunk();
     }
-
-    std::cout << Chunk::chunksNum << std::endl;
+    //std::cout << Chunk::chunksNum << std::endl;
 }

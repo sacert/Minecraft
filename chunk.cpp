@@ -81,32 +81,32 @@ void Chunk::updateChunk(Chunk* nb) {
                 if (bt != BlockType::AIR) {
                     // top
                     
-                    if (checkNeighbour(block_x,block_y+1,block_z)&&checkFace(block_x,block_y+1,block_z)) {
+                    if (checkNeighbour(block_x,block_y+1,block_z)) {
                         addTopFace(buffer_data, coord, bt);
                         faces++;
                     }
                     // bottom
-                    if (checkNeighbour(block_x,block_y-1,block_z)&&checkFace(block_x,block_y-1,block_z)) {
+                    if (checkNeighbour(block_x,block_y-1,block_z)) {
                         addBottomFace(buffer_data, coord, bt);
                         faces++;
                     }
                     // right
-                    if (checkNeighbour(block_x+1,block_y,block_z)&&checkFace(block_x+1,block_y,block_z)) {
+                    if (checkNeighbour(block_x+1,block_y,block_z)) {
                         addRightFace(buffer_data, coord, bt);
                         faces++;
                     }
                     // left
-                    if (checkNeighbour(block_x-1,block_y,block_z)&&checkFace(block_x-1,block_y,block_z)) {
+                    if (checkNeighbour(block_x-1,block_y,block_z)) {
                         addLeftFace(buffer_data, coord, bt);
                         faces++;
                     }
                     // front
-                    if (checkNeighbour(block_x,block_y,block_z+1)&&checkFace(block_x,block_y,block_z+1)) {
+                    if (checkNeighbour(block_x,block_y,block_z+1)) {
                         addFrontFace(buffer_data, coord, bt);
                         faces++;
                     }
                     // back
-                    if (checkNeighbour(block_x,block_y,block_z-1)&&checkFace(block_x,block_y,block_z-1)) {
+                    if (checkNeighbour(block_x,block_y,block_z-1)) {
                         addBackFace(buffer_data, coord, bt);
                         faces++;
                     }
@@ -153,6 +153,10 @@ void Chunk::updateChunk(Chunk* nb) {
 
     //glDisableVertexAttribArray(gVert);
     //glDisableVertexAttribArray(gVertTexCoord);
+}
+
+Chunk * Chunk::getNeighbours() {
+    return neighbours;
 }
 
 void Chunk::createChunk() {
@@ -257,9 +261,6 @@ void Chunk::createChunk() {
         }
     }
 
-    // std::chrono::steady_clock::time_point end= std::chrono::steady_clock::now();
-    // std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() <<std::endl;
-
     // Give our vertices and UVs to OpenGL.
     glBufferData(GL_ARRAY_BUFFER, buffer_data.size() * sizeof(GLfloat), buffer_data.data(), GL_STATIC_DRAW);
 
@@ -316,28 +317,7 @@ void Chunk::renderChunk() {
     if (!found)
         return;
 
-    // // // check if a block in a chunk is within the view; if so, render the chunk
-    // if (!(frustum.cubeInFrustum(chunk_x,-128,chunk_z,chunk_x+16, -113,chunk_z + 16, CHUNK_SIZE/2) || 
-    // (frustum.cubeInFrustum(chunk_x,-112,chunk_z,chunk_x+16, -97,chunk_z + 16, CHUNK_SIZE/2)) || 
-    // (frustum.cubeInFrustum(chunk_x,-96,chunk_z,chunk_x+16, -81,chunk_z + 16, CHUNK_SIZE/2)) ||
-    // (frustum.cubeInFrustum(chunk_x,-80,chunk_z,chunk_x+16, -65,chunk_z + 16, CHUNK_SIZE/2))|| 
-    // (frustum.cubeInFrustum(chunk_x,-64,chunk_z,chunk_x+16, -49,chunk_z + 16, CHUNK_SIZE/2))|| 
-    // (frustum.cubeInFrustum(chunk_x,-48,chunk_z,chunk_x+16, -33,chunk_z + 16, CHUNK_SIZE/2))|| 
-    // (frustum.cubeInFrustum(chunk_x,-32,chunk_z,chunk_x+16, -17,chunk_z + 16, CHUNK_SIZE/2))||
-    // (frustum.cubeInFrustum(chunk_x,-16,chunk_z,chunk_x+16, -1,chunk_z + 16, CHUNK_SIZE/2))||
-    // (frustum.cubeInFrustum(chunk_x,0,chunk_z,chunk_x+16, 15,chunk_z + 16, CHUNK_SIZE/2))||
-    // (frustum.cubeInFrustum(chunk_x,16,chunk_z,chunk_x+16, 31,chunk_z + 16, CHUNK_SIZE/2))||
-    // (frustum.cubeInFrustum(chunk_x,32,chunk_z,chunk_x+16, 47,chunk_z + 16, CHUNK_SIZE/2))||
-    // (frustum.cubeInFrustum(chunk_x,48,chunk_z,chunk_x+16, 63,chunk_z + 16, CHUNK_SIZE/2))||
-    // (frustum.cubeInFrustum(chunk_x,64,chunk_z,chunk_x+16, 79,chunk_z + 16, CHUNK_SIZE/2))||
-    // (frustum.cubeInFrustum(chunk_x,80,chunk_z,chunk_x+16, 95,chunk_z + 16, CHUNK_SIZE/2))||
-    // (frustum.cubeInFrustum(chunk_x,96,chunk_z,chunk_x+16, 111,chunk_z + 16, CHUNK_SIZE/2))||
-    // (frustum.cubeInFrustum(chunk_x,112,chunk_z,chunk_x+16, 127,chunk_z + 16, CHUNK_SIZE/2)))) {
-    //     return;
-    // } 
-    
-
-    chunksNum++;
+    //chunksNum++;
     glUseProgram(shaders);
 
     // // bind the texture and set the "tex" uniform in the fragment shader -- *** could I potentially just bind once since I'm only using 1 texture file? ***
@@ -380,7 +360,7 @@ int Chunk::chunksNum;
 bool Chunk::checkFace(int x, int y, int z) {
 
     if (x < 0 || x > 15 || y < 0 || y > 255 || z < 0 || z > 15) {
-        return true;
+        return false;
     }
 
     return (blocks[x][y][z] == BlockType::AIR);
@@ -405,7 +385,10 @@ bool Chunk::checkNeighbour(int x, int y, int z) {
     if (z < 0 && !neighbours[3].isEmpty()) 
         return neighbours[3].getBlockNormalized(Coordinates(x, y, 15)) == BlockType::AIR;
 
-    return true;
+    if (x < 0 || x > 15 || y < 0 || y > 255 || z < 0 || z > 15) {
+        return false;
+    }
+    return (blocks[x][y][z] == BlockType::AIR);
 }
 
 void Chunk::addBlock(Coordinates blockCoord, BlockType bt) {

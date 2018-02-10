@@ -17,6 +17,7 @@ class Chunk {
         ~Chunk();
         void createChunk();
         void updateChunk(Chunk* neighbours);
+        void updateChunk();
         void renderChunk();
         BlockType getBlock(Coordinates blockCoord);
         BlockType getBlockNormalized(Coordinates blockCoord);
@@ -25,8 +26,9 @@ class Chunk {
         bool checkFace(int x, int y, int z);
         bool checkNeighbour(int x, int y, int z);
         int getX() {return chunk_x;}
-        int getY() {return chunk_z;}
+        int getZ() {return chunk_z;}
         int isEmpty() {return empty;}
+        Chunk * getNeighbours();
         static int chunksNum;
     private:   
         int chunk_x;

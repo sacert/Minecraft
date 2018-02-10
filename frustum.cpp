@@ -109,6 +109,32 @@ void Frustum::getFrustum(glm::mat4 modelViewMatrix, glm::mat4 projectionMatrix) 
     frustum[5][3] /= t;
 }
 
+bool Frustum::cubeInFrustum( float x, float y, float z, float size ) {
+    int p;
+
+    for( p = 0; p < 6; p++ )
+    {
+        if( frustum[p][0] * (x - size) + frustum[p][1] * (y - size) + frustum[p][2] * (z - size) + frustum[p][3] > 0 )
+            continue;
+        if( frustum[p][0] * (x + size) + frustum[p][1] * (y - size) + frustum[p][2] * (z - size) + frustum[p][3] > 0 )
+            continue;
+        if( frustum[p][0] * (x - size) + frustum[p][1] * (y + size) + frustum[p][2] * (z - size) + frustum[p][3] > 0 )
+            continue;
+        if( frustum[p][0] * (x + size) + frustum[p][1] * (y + size) + frustum[p][2] * (z - size) + frustum[p][3] > 0 )
+            continue;
+        if( frustum[p][0] * (x - size) + frustum[p][1] * (y - size) + frustum[p][2] * (z + size) + frustum[p][3] > 0 )
+            continue;
+        if( frustum[p][0] * (x + size) + frustum[p][1] * (y - size) + frustum[p][2] * (z + size) + frustum[p][3] > 0 )
+            continue;
+        if( frustum[p][0] * (x - size) + frustum[p][1] * (y + size) + frustum[p][2] * (z + size) + frustum[p][3] > 0 )
+            continue;
+        if( frustum[p][0] * (x + size) + frustum[p][1] * (y + size) + frustum[p][2] * (z + size) + frustum[p][3] > 0 )
+            continue;
+        return false;
+    }
+    return true;
+}
+
 bool Frustum::cubeInFrustum( float x, float y, float z, float maxx, float maxy, float maxz, float size ) {
     int p;
 

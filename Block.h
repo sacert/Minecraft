@@ -12,6 +12,7 @@ enum BlockType {
     DIRT,
     COBBLESTONE,
     BEDROCK,
+    EMPTY,
 };
 
 struct TextureSides {
