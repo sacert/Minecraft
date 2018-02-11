@@ -16,7 +16,7 @@ class ChunkManager {
         Chunk* getNeighbours(Coordinates chunkCoord);
         void updateChunk(Coordinates chunkCoord);
     private:
-        // will need player position to add and remove chunks for the render distance
+        int getChunkPos(int val);
         float player_x;
         float player_z;
         std::unordered_map<Coordinates, Chunk> chunks;  // x z = val / y = 0 

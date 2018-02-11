@@ -4,8 +4,6 @@
 #include "texture.h"
 #include "camera.h"
 #include "frustum.h"
-#include <iostream>
-
 
 #define CHUNK_SIZE 16 // x & z
 #define CHUNK_HEIGHT 256 // y
@@ -13,25 +11,25 @@
 class Chunk {
     public:
         Chunk();
-        Chunk(int x, int z, Camera *cam, BlockType ***block);
+        Chunk(int x, int z, Camera *cam);
+        Chunk (const Chunk& other);
+        Chunk& operator= (const Chunk& other);
         ~Chunk();
         void createChunk();
         void updateChunk(Chunk* neighbours);
-        void updateChunk();
         void renderChunk(Coordinates selected);
         BlockType getBlock(Coordinates blockCoord);
-        BlockType getBlockWorld(Coordinates blockCoord);
+        BlockType getBlockWorldPos(Coordinates blockCoord);
         void addBlock(Coordinates blockCoord, BlockType bt);
         void removeBlock(Coordinates blockCoord);
         bool checkFace(int x, int y, int z);
         bool checkNeighbour(int x, int y, int z);
+        Chunk * getNeighbours();
         int getX() {return chunk_x;}
         int getZ() {return chunk_z;}
         int isEmpty() {return empty;}
-        Chunk * getNeighbours();
     private:
         void bufferSetup();
-        void fillVAO();
         void fillBlockType();
         void sendVAO();
         int chunk_x;

@@ -9,22 +9,10 @@ ChunkManager::ChunkManager(Camera *cam) {
 // add chunk into the map from save file if already created before otherwise create new chunk
 void ChunkManager::addChunk(Coordinates chunkCoord) {
 
-     //  allocate memory for blocks - is there an easier way to do this?
-    BlockType*** blocks = new BlockType**[CHUNK_SIZE];
-    for (int i = 0; i < CHUNK_SIZE; i++) {
-        blocks[i] = new BlockType*[CHUNK_HEIGHT];
-        for (int j = 0; j < CHUNK_HEIGHT; j++) {
-            blocks[i][j] = new BlockType[CHUNK_SIZE];
-        }
-    }
-
-    Chunk chunk(chunkCoord.x, chunkCoord.z, camera, blocks);
+    Chunk chunk = Chunk(chunkCoord.x, chunkCoord.z, camera);
 
     // only create chunk if isn't in the 'save file' - which isn't implemented yet
     chunk.createChunk();
-
-    //else 
-    //chunk.retrieveChunk();
 
     chunks.insert(std::make_pair(chunkCoord, chunk));
 
@@ -67,27 +55,19 @@ void ChunkManager::addBlock(Coordinates blockCoord, BlockType bt) {
 }
 
 void ChunkManager::removeBlock(Coordinates blockCoord) {
-    int x = blockCoord.x;
-    int z = blockCoord.z;
-    while(1) {
-        if (x  % 16 == 0) {
-            break;
-        }
-        x--;
-    }
 
-    while(1) {
-        if (z  % 16 == 0) {
-            break;
-        }
-        z--;
-    }
-    Coordinates aCoord(x/16, 0, z/16);
+    // get the closest floor values to a multiple of 16
+    int x = getChunkPos(blockCoord.x);
+    int z = getChunkPos(blockCoord.z);
+    Coordinates aCoord(x, 0, z);
+
     auto it=chunks.find(aCoord);
     if (it==chunks.end()) 
         return;
     it->second.removeBlock(blockCoord);
     it->second.updateChunk(getNeighbours(aCoord));
+
+    // update the neighbours so they know edge chunks are no longer visible
     Chunk* neighbours = it->second.getNeighbours();
     for (int i = 0; i < 4; i++) {
         Coordinates aCoord(neighbours[i].getX()/16, 0, neighbours[i].getZ()/16);
@@ -146,26 +126,9 @@ Chunk* ChunkManager::getNeighbours(Coordinates chunkCoord) {
 
 BlockType ChunkManager::getBlock(Coordinates blockCoord) {
 
-    int x = blockCoord.x;
-    int z = blockCoord.z;
-    while(1) {
-        if (x  % 16 == 0) {
-            break;
-        }
-        x--;
-    }
-
-    while(1) {
-        if (z  % 16 == 0) {
-            break;
-        }
-        z--;
-    }
-    int xx = x /16;
-    int zz = z /16;
-    Coordinates aCoord(xx, 0, zz); 
-
-    //std::cout << aCoord.x << " " << aCoord.y << " " <<aCoord.z << std::endl;
+    int x = getChunkPos(blockCoord.x);
+    int z = getChunkPos(blockCoord.z);
+    Coordinates aCoord(x, 0, z); 
 
     // need to check if chunk is even there -- impossible once chunks are generated around user
     auto it=chunks.find(aCoord);
@@ -185,8 +148,16 @@ void ChunkManager::removeChunk(Coordinates chunkCoord) {
 }
 
 void ChunkManager::renderChunks(Coordinates selected) {
-
     for ( auto it = chunks.begin(); it != chunks.end(); ++it ) {
        it->second.renderChunk(selected);
     }
+}
+
+int ChunkManager::getChunkPos(int val) {
+    while(1) {
+        if (val  % 16 == 0) 
+            break;
+        val--;
+    }
+    return val/16;
 }
