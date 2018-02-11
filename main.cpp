@@ -30,25 +30,19 @@
 #include "libraries/stb_image.h"
 #include "libraries/FastNoise.h"
 
-// globals - clean up in future
-GLFWwindow* gWindow;
-Camera gCamera;
-SkyBox skybox;
-GUI gui;
-
-Coordinates Update(float secondsElapsed, ChunkManager &cm) {
+Coordinates Update(float secondsElapsed, ChunkManager &cm, Camera &camera, GLFWwindow* window) {
 
     //move position of camera based on WASD keys
     const float moveSpeed = 2.0; //units per second
-    if(glfwGetKey(gWindow, 'S')){
-        gCamera.offsetPosition(secondsElapsed * moveSpeed * -gCamera.forward());
-    } else if(glfwGetKey(gWindow, 'W')){
-        gCamera.offsetPosition(secondsElapsed * moveSpeed * gCamera.forward());
+    if(glfwGetKey(window, 'S')){
+        camera.offsetPosition(secondsElapsed * moveSpeed * -camera.forward());
+    } else if(glfwGetKey(window, 'W')){
+        camera.offsetPosition(secondsElapsed * moveSpeed * camera.forward());
     }
-    if(glfwGetKey(gWindow, 'A')){
-        gCamera.offsetPosition(secondsElapsed * moveSpeed * -gCamera.right());
-    } else if(glfwGetKey(gWindow, 'D')){
-        gCamera.offsetPosition(secondsElapsed * moveSpeed * gCamera.right());
+    if(glfwGetKey(window, 'A')){
+        camera.offsetPosition(secondsElapsed * moveSpeed * -camera.right());
+    } else if(glfwGetKey(window, 'D')){
+        camera.offsetPosition(secondsElapsed * moveSpeed * camera.right());
     }
 
     // check to see if mouse was already pressed so it doesn't delete multiple blocks at once
@@ -58,17 +52,18 @@ Coordinates Update(float secondsElapsed, ChunkManager &cm) {
     // used to determine if block exists in corresponding coordinates
     Coordinates cd = Coordinates(0,0,0);
 
+    // hold the block that is currently selected
     Coordinates currSelected = Coordinates(999,999,999);
 
     // deleting blocks
-    glm::vec3 line = gCamera.position();
+    glm::vec3 line = camera.position();
     glm::vec3 prevLine;     // prevLine holds previous line position
     glm::vec3 prevBlock;    // prevBlock holds the position of the block right before one is hit
 
     for (int i = 0; i < 100 ;i++) {
         // create a line to determine which is the closest block
         // this determines how far the player will be able to break blocks - adjust accordingly
-        line += 0.02f * moveSpeed * gCamera.forward(); 
+        line += 0.02f * moveSpeed * camera.forward(); 
         
         cd = Coordinates(floor(line.x), floor(line.y), floor(line.z));
 
@@ -88,7 +83,7 @@ Coordinates Update(float secondsElapsed, ChunkManager &cm) {
             currSelected = Coordinates(999,999,999);
         }
     }
-    int stateLeft = glfwGetMouseButton(gWindow, GLFW_MOUSE_BUTTON_LEFT);
+    int stateLeft = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
     if (stateLeft == GLFW_PRESS && leftMousePressed == 0){
         if (cm.getBlock(cd)) {
             cm.removeBlock(cd);
@@ -96,7 +91,7 @@ Coordinates Update(float secondsElapsed, ChunkManager &cm) {
         }
     }
 
-    int stateRight = glfwGetMouseButton(gWindow, GLFW_MOUSE_BUTTON_RIGHT);
+    int stateRight = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
     if (stateRight == GLFW_PRESS && rightMousePressed == 0){
         if (cm.getBlock(cd)) {
             Coordinates cs = Coordinates(floor(prevLine.x), floor(prevLine.y), floor(prevLine.z));
@@ -117,15 +112,15 @@ Coordinates Update(float secondsElapsed, ChunkManager &cm) {
     //rotate camera based on mouse movement
     const float mouseSensitivity = 0.1f;
     double mouseX, mouseY;
-    glfwGetCursorPos(gWindow, &mouseX, &mouseY);
-    gCamera.offsetOrientation(mouseSensitivity * (float)mouseY, mouseSensitivity * (float)mouseX);
-    glfwSetCursorPos(gWindow, 0, 0); //reset the mouse, so it doesn't go out of the window
+    glfwGetCursorPos(window, &mouseX, &mouseY);
+    camera.offsetOrientation(mouseSensitivity * (float)mouseY, mouseSensitivity * (float)mouseX);
+    glfwSetCursorPos(window, 0, 0); //reset the mouse, so it doesn't go out of the window
 
     return currSelected;
 }
 
 // draws a single frame
-void Render(ChunkManager &cm, Coordinates selected) {
+void Render(ChunkManager &cm, Coordinates selected, Camera &camera, GLFWwindow *window, GUI gui, SkyBox skybox) {
 
     // clear everything
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -136,11 +131,11 @@ void Render(ChunkManager &cm, Coordinates selected) {
 
     // render skybox last
     glDisable(GL_CULL_FACE);
-    skybox.Render(gCamera);
+    skybox.Render(camera);
     glEnable(GL_CULL_FACE);
     
     // swap the display buffers (displays what was just drawn)
-    glfwSwapBuffers(gWindow);
+    glfwSwapBuffers(window);
 
 }
 
@@ -160,13 +155,13 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL 
     
     // Open a window and create its OpenGL context
-    gWindow = glfwCreateWindow( SCREEN_SIZE.x, SCREEN_SIZE.y, "Minecraft", NULL, NULL);
-    if( gWindow == NULL ){
+    GLFWwindow* window = glfwCreateWindow( SCREEN_SIZE.x, SCREEN_SIZE.y, "Minecraft", NULL, NULL);
+    if( window == NULL ){
         fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
         glfwTerminate();
         return -1;
     }
-    glfwMakeContextCurrent(gWindow); // Initialize GLEW
+    glfwMakeContextCurrent(window); // Initialize GLEW
     glewExperimental=1; // Needed in core profile
     if (glewInit() != GLEW_OK) {
         fprintf(stderr, "Failed to initialize GLEW\n");
@@ -174,8 +169,8 @@ int main() {
     }
 
     // GLFW settings
-    glfwSetInputMode(gWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPos(gWindow, 0, 0);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPos(window, 0, 0);
 
     // Makes sure textures factor in depth when being loaded
     glEnable(GL_DEPTH_TEST);
@@ -183,24 +178,28 @@ int main() {
     glDepthFunc(GL_LESS);
 
     // Ensure we can capture the escape key being pressed below
-    glfwSetInputMode(gWindow, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
     // Turn off vsync ***** LEAVE ON FOR OPTIMISATION TESTING BUT DELETE AFTER ******
     glfwSwapInterval(0);
-
+    
+    SkyBox skybox;
     skybox.LoadSkyBox();
+
+    GUI gui;
     gui.LoadGUI();
 
-    // Setup gCamera
-    gCamera.setPosition(glm::vec3(0,2,-2));
-    gCamera.setViewportAspectRatio(SCREEN_SIZE.x / SCREEN_SIZE.y);
+    // Setup camera
+    Camera camera;
+    camera.setPosition(glm::vec3(0,2,0));
+    camera.setViewportAspectRatio(SCREEN_SIZE.x / SCREEN_SIZE.y);
 
     double update_prevTime = glfwGetTime();
     double fps_prevTime = glfwGetTime();
     int frames = 0;
 
     // chunk manager holds all chunks and deals with them
-    ChunkManager cm(&gCamera);
+    ChunkManager cm(&camera);
 
     // itialize basic blocks - mainly just for testing here
     for (int i = -2; i < 2; i++) {
@@ -215,11 +214,8 @@ int main() {
             cm.updateChunk(Coordinates(i,0,j));
         }
     }
-    //cm.updateChunk(Coordinates(0,0,0));
 
-    Coordinates selected = Coordinates(999,999,999);
-
-    while(!glfwWindowShouldClose(gWindow)){
+    while(!glfwWindowShouldClose(window)){
 
         // basic FPS display
         double fps_currTime = glfwGetTime();
@@ -231,11 +227,11 @@ int main() {
         }
 
         double update_currTime = glfwGetTime();
-        selected = Update((float)(update_currTime - update_prevTime), cm);
+        Coordinates selected = Update((float)(update_currTime - update_prevTime), cm, camera, window);
         update_prevTime = update_currTime;
 
         // draw one frame
-        Render(cm, selected);
+        Render(cm, selected, camera, window, gui, skybox);
         glfwPollEvents();
 
         // check for errors
@@ -244,8 +240,8 @@ int main() {
             std::cerr << "OpenGL Error " << error << std::endl;
 
         //exit program if escape key is pressed
-        if(glfwGetKey(gWindow, GLFW_KEY_ESCAPE))
-            glfwSetWindowShouldClose(gWindow, GL_TRUE);
+        if(glfwGetKey(window, GLFW_KEY_ESCAPE))
+            glfwSetWindowShouldClose(window, GL_TRUE);
 
     } 
     
