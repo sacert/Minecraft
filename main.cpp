@@ -24,95 +24,17 @@
 #include "bitmap.h"
 #include "camera.h"
 #include "skybox.h"
+#include "gui.h"
 #include "util.h"
 #include "chunk_manager.h"
 #include "libraries/stb_image.h"
 #include "libraries/FastNoise.h"
 
-#define N -0.0625   // normalized size of each block in texture file - negative for opengl
-#define TEXCOORDY(Y) (1-(0.0625 * Y))    // corrected way to find y coordinates of texture file
-#define TEXCOORDX(X) (0.0625+(0.0625 * X))    // corrected way to find x coordinates of texture file
-
-struct Asset {
-    GLint shaders;
-    Texture* texture;
-    GLuint vbo;
-    GLuint vao;
-    GLenum drawType;
-    GLint drawStart;
-    GLint drawCount;
-    glm::vec2 scale;
-};
-
-// constants
-const glm::vec2 SCREEN_SIZE(800, 600);
-
 // globals - clean up in future
 GLFWwindow* gWindow;
 Camera gCamera;
 SkyBox skybox;
-Asset gui;
-
-Frustum frustum;
-FastNoise perlinNoise; // Create a FastNoise object
-
-void LoadGui(Asset *block) {
-
-    // set all the elements of block
-    block->shaders = LoadShaders( "shaders/gui_vertex.glsl", "shaders/gui_fragment.glsl" );
-    block->drawType = GL_TRIANGLES;
-    block->drawStart = 0;
-    block->drawCount = 2*3;
-    block->texture = LoadTexture("crosshair.png");
-    block->scale.x = 0.15 * (SCREEN_SIZE.y/SCREEN_SIZE.x); // by multiply by screen ratio, scale x and y will make a square
-    block->scale.y = 0.15;
-    glGenBuffers(1, &block->vbo);
-    glGenVertexArrays(1, &block->vao);
-
-	glBindVertexArray(block->vao);
-    glBindBuffer(GL_ARRAY_BUFFER, block->vbo);
-
-    // An array of for the crosshair vertices 
-    GLfloat g_vertex_buffer_data[] = {
-        -1.0f,-1.0f, 0.0f,   1.0f, 0.0f,
-         1.0f,-1.0f, 0.0f,   0.0f, 0.0f,
-        -1.0f, 1.0f, 0.0f,   1.0f, 1.0f,
-         1.0f,-1.0f, 0.0f,   0.0f, 0.0f,
-         1.0f, 1.0f, 0.0f,   0.0f, 1.0f,
-        -1.0f, 1.0f, 0.0f,   1.0f, 1.0f,
-    };
-
-    // Give our vertices to OpenGL.
-    glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
-
-    // crosshair vertices
-    GLuint gVert = glGetAttribLocation(block->shaders, "vert");
-    glEnableVertexAttribArray(gVert);
-    glVertexAttribPointer(
-        0,                  // attribute 0
-        3,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        5*sizeof(GLfloat),  // stride
-        (void*)0            // array buffer offset
-    );
-
-    // UV values
-    GLuint gVertTexCoord = glGetAttribLocation(block->shaders, "vertTexCoord");
-    glEnableVertexAttribArray(gVertTexCoord);
-    glVertexAttribPointer(
-        1,                  // attribute 1
-        2,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        5*sizeof(GLfloat),  // stride
-        (const GLvoid*)(3 * sizeof(GLfloat))    // array buffer offset
-    );
-
-    // unbind VAO and VBO 
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
+GUI gui;
 
 void Update(float secondsElapsed, ChunkManager &cm) {
 
@@ -206,32 +128,6 @@ void Update(float secondsElapsed, ChunkManager &cm) {
     glfwSetCursorPos(gWindow, 0, 0); //reset the mouse, so it doesn't go out of the window
 }
 
-void RenderCrosshair() {
-
-    // use program - shaders
-    glUseProgram(gui.shaders);
-
-    // active and bind textures
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gui.texture->object());
-
-    // scaling crosshair
-    GLint scale = glGetUniformLocation(gui.shaders, "scale");
-    glUniform2f(scale, gui.scale.x, gui.scale.y);
-
-    // texture values
-    GLint tex = glGetUniformLocation(gui.shaders, "tex");
-    glUniform1i(tex, 0);
-        
-    // bind the VAO and draw everything inside
-    glBindVertexArray(gui.vao);
-    glDrawArrays(GL_TRIANGLES, 0, gui.drawCount);
-    
-    // unbind VAO and program (shaders)
-    glBindVertexArray(0);
-    glUseProgram(0);
-}
-
 // draws a single frame
 void Render(ChunkManager &cm) {
 
@@ -240,7 +136,7 @@ void Render(ChunkManager &cm) {
 
     cm.renderChunks();
 
-    RenderCrosshair();
+    gui.RenderCrosshair();
 
     // render skybox last
     glDisable(GL_CULL_FACE);
@@ -296,12 +192,8 @@ int main() {
     // Turn off vsync ***** LEAVE ON FOR OPTIMISATION TESTING BUT DELETE AFTER ******
     glfwSwapInterval(0);
 
-    // Setting up perlin noise - should be within it's own class (change later)
-    perlinNoise.SetNoiseType(FastNoise::Perlin); // Set the desired noise type
-    perlinNoise.SetSeed(123);
-
     skybox.LoadSkyBox();
-    LoadGui(&gui);
+    gui.LoadGUI();
 
     // Setup gCamera
     gCamera.setPosition(glm::vec3(0,2,-2));
