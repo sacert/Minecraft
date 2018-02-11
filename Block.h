@@ -77,6 +77,4 @@ void addLeftFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType
 void addFrontFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);
 void addBackFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);
 
-//GLint shaders = LoadShaders( "shaders/block_vertex.glsl", "shaders/block_fragment.glsl" );
-
 

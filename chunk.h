@@ -20,7 +20,7 @@ class Chunk {
         void updateChunk();
         void renderChunk(Coordinates selected);
         BlockType getBlock(Coordinates blockCoord);
-        BlockType getBlockNormalized(Coordinates blockCoord);
+        BlockType getBlockWorld(Coordinates blockCoord);
         void addBlock(Coordinates blockCoord, BlockType bt);
         void removeBlock(Coordinates blockCoord);
         bool checkFace(int x, int y, int z);
@@ -29,8 +29,11 @@ class Chunk {
         int getZ() {return chunk_z;}
         int isEmpty() {return empty;}
         Chunk * getNeighbours();
-        static int chunksNum;
-    private:   
+    private:
+        void bufferSetup();
+        void fillVAO();
+        void fillBlockType();
+        void sendVAO();
         int chunk_x;
         int chunk_z;
         double faces;
