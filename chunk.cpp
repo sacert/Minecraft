@@ -298,7 +298,7 @@ void Chunk::createChunk() {
     //glDisableVertexAttribArray(gVertTexCoord);
 }
 
-void Chunk::renderChunk() {
+void Chunk::renderChunk(Coordinates selected) {
 
      int maxHeight = CHUNK_HEIGHT/2;
     int minHeight = -maxHeight;
@@ -328,8 +328,9 @@ void Chunk::renderChunk() {
     glUniform1i(tex, 0);
 
     // TODO: Implement selected block
-    //GLint selected = glGetUniformLocation(shaders, "selected");
-    //glUniform1fv(selected, 1, &inst.selected);
+    GLint s = glGetUniformLocation(shaders, "selected");
+    glm::vec3 select = glm::vec3(selected.x, selected.y, selected.z);
+    glUniform3fv(s, 1, &select[0]);
 
     // set up the camera
     GLint cameraMatrix = glGetUniformLocation(shaders, "camera");

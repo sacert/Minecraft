@@ -184,11 +184,11 @@ void ChunkManager::removeChunk(Coordinates chunkCoord) {
     chunks.erase(chunkCoord);
 }
 
-void ChunkManager::renderChunks() {
+void ChunkManager::renderChunks(Coordinates selected) {
 
     Chunk::chunksNum = 0;
     for ( auto it = chunks.begin(); it != chunks.end(); ++it ) {
-       it->second.renderChunk();
+       it->second.renderChunk(selected);
     }
     //std::cout << Chunk::chunksNum << std::endl;
 }

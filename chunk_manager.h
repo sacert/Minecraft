@@ -12,7 +12,7 @@ class ChunkManager {
         Chunk findChunk(Coordinates chunkCoord);    // used by add/removeBlock
         void addChunk(Coordinates chunkCoord);
         void removeChunk(Coordinates chunkCoord);
-        void renderChunks();                        // when rendering chunks, pass camera  
+        void renderChunks(Coordinates selected);                        // when rendering chunks, pass camera  
         Chunk* getNeighbours(Coordinates chunkCoord);
         void updateChunk(Coordinates chunkCoord);
     private:

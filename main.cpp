@@ -36,7 +36,7 @@ Camera gCamera;
 SkyBox skybox;
 GUI gui;
 
-void Update(float secondsElapsed, ChunkManager &cm) {
+Coordinates Update(float secondsElapsed, ChunkManager &cm) {
 
     //move position of camera based on WASD keys
     const float moveSpeed = 2.0; //units per second
@@ -51,15 +51,15 @@ void Update(float secondsElapsed, ChunkManager &cm) {
         gCamera.offsetPosition(secondsElapsed * moveSpeed * gCamera.right());
     }
 
-
-    // BELOW DEALS WITH DELETING AND SETTING A BLOCK AS SELECTED
-    // CHANGED TO USING CHUNKS SO THIS STILL NEEDS TO BE SET UP
-
     // check to see if mouse was already pressed so it doesn't delete multiple blocks at once
-    // required more testing
     static int rightMousePressed = 0;
     static int leftMousePressed = 0;
+
+    // used to determine if block exists in corresponding coordinates
     Coordinates cd = Coordinates(0,0,0);
+
+    Coordinates currSelected = Coordinates(999,999,999);
+
     // deleting blocks
     glm::vec3 line = gCamera.position();
     glm::vec3 prevLine;     // prevLine holds previous line position
@@ -76,23 +76,17 @@ void Update(float secondsElapsed, ChunkManager &cm) {
         if (!cm.getBlock(cd)) {
             prevLine = line;
         }
+
+        // if block found
         if (cm.getBlock(cd)) {
-            //std::cout << cd.x << " " << cd.y << " " << cd.z << std::endl; 
-            prevBlock = prevLine;
-            // clear the previous selected block and assign it to the new one
-            // if (map.at(cd).selected == 0 && currSelected != NULL) {
-            //    currSelected->selected = 0;
-            // }
-            // currSelected = &map.at(cd);
-            // currSelected->selected = 1;
+            currSelected = cd;
             break;
         } 
 
         // if the end of the line is reached without a block being looked at, there is no current selected block
-        // if (i == 99 && currSelected != NULL) {
-        //     currSelected->selected = 0;
-        //     currSelected = NULL;
-        // }
+        if (i == 99) {
+            currSelected = Coordinates(999,999,999);
+        }
     }
     int stateLeft = glfwGetMouseButton(gWindow, GLFW_MOUSE_BUTTON_LEFT);
     if (stateLeft == GLFW_PRESS && leftMousePressed == 0){
@@ -126,15 +120,17 @@ void Update(float secondsElapsed, ChunkManager &cm) {
     glfwGetCursorPos(gWindow, &mouseX, &mouseY);
     gCamera.offsetOrientation(mouseSensitivity * (float)mouseY, mouseSensitivity * (float)mouseX);
     glfwSetCursorPos(gWindow, 0, 0); //reset the mouse, so it doesn't go out of the window
+
+    return currSelected;
 }
 
 // draws a single frame
-void Render(ChunkManager &cm) {
+void Render(ChunkManager &cm, Coordinates selected) {
 
     // clear everything
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    cm.renderChunks();
+    cm.renderChunks(selected);
 
     gui.RenderCrosshair();
 
@@ -221,6 +217,8 @@ int main() {
     }
     //cm.updateChunk(Coordinates(0,0,0));
 
+    Coordinates selected = Coordinates(999,999,999);
+
     while(!glfwWindowShouldClose(gWindow)){
 
         // basic FPS display
@@ -233,11 +231,11 @@ int main() {
         }
 
         double update_currTime = glfwGetTime();
-        Update((float)(update_currTime - update_prevTime), cm);
+        selected = Update((float)(update_currTime - update_prevTime), cm);
         update_prevTime = update_currTime;
 
         // draw one frame
-        Render(cm);
+        Render(cm, selected);
         glfwPollEvents();
 
         // check for errors

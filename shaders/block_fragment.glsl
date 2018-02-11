@@ -1,7 +1,7 @@
 #version 330 core
 
 uniform sampler2D tex;
-uniform float selected;
+uniform vec3 selected;
 in float select;
 
 in vec2 fragTexCoord;
@@ -13,14 +13,15 @@ in vec3 vertCoord;
 void main(){
     vec4 color = texture(tex, fragTexCoord);
 
-    // create black outline around selected block
-    if (selected == 1.0f) {
-        if ((vertCoord.x < 0.01 || vertCoord.x > 0.99) && (vertCoord.z < 0.01 || vertCoord.z > 0.99) || 
-        (vertCoord.y < 0.01 || vertCoord.y > 0.99) && (vertCoord.z < 0.01 || vertCoord.z > 0.99) ||
-        (vertCoord.x < 0.01 || vertCoord.x > 0.99) && (vertCoord.y < 0.01 || vertCoord.y > 0.99)) {
+    if (selected.y != 999) {
+        if ((vertCoord.x >= selected.x && vertCoord.x <= (selected.x + 1)) && (vertCoord.y >= selected.y && vertCoord.y <= (selected.y + 1)) && (vertCoord.z >= selected.z && vertCoord.z <= (selected.z + 1))) {
+            if ((vertCoord.x < (selected.x+0.01) || vertCoord.x > (selected.x+0.99)) && (vertCoord.z < (selected.z+0.01) || vertCoord.z > (selected.z+0.99)) || 
+            (vertCoord.y < (selected.y+0.01) || vertCoord.y > (selected.y+0.99)) && (vertCoord.z < (selected.z+0.01) || vertCoord.z > (selected.z+0.99)) ||
+            (vertCoord.x < (selected.x+0.01) || vertCoord.x > (selected.x+0.99)) && (vertCoord.y < (selected.y+0.01) || vertCoord.y > (selected.y+0.99))) {
 
-            frag_color = vec4(0.2, 0.2, 0.2, 1.0);
-            return;
+                frag_color = vec4(0.2, 0.2, 0.2, 1.0);
+                return;
+            }
 
         }
     }

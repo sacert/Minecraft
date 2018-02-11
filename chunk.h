@@ -18,7 +18,7 @@ class Chunk {
         void createChunk();
         void updateChunk(Chunk* neighbours);
         void updateChunk();
-        void renderChunk();
+        void renderChunk(Coordinates selected);
         BlockType getBlock(Coordinates blockCoord);
         BlockType getBlockNormalized(Coordinates blockCoord);
         void addBlock(Coordinates blockCoord, BlockType bt);
