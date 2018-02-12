@@ -30,7 +30,19 @@
 #include "libraries/stb_image.h"
 #include "libraries/FastNoise.h"
 
+int getChunkPos(int val) {
+    while(1) {
+        if (val  % 16 == 0) 
+            break;
+        val--;
+    }
+    return val/16;
+}
+
 Coordinates Update(float secondsElapsed, ChunkManager &cm, Camera &camera, GLFWwindow* window) {
+
+
+    cm.proceduralMapUpdate(camera.position());
 
     //move position of camera based on WASD keys
     const float moveSpeed = 2.0; //units per second

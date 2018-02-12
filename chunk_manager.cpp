@@ -4,6 +4,10 @@
 
 ChunkManager::ChunkManager(Camera *cam) {
     camera = cam;
+
+    // keep track of the chunk the player was previously in - for prodcedural map generation
+    oldPos.x = 0;
+    oldPos.z = 0;
 }
 
 // add chunk into the map from save file if already created before otherwise create new chunk
@@ -143,6 +147,13 @@ Chunk ChunkManager::findChunk(Coordinates chunkCoord) {
     return got->second;
 }
 
+bool ChunkManager::emptyChunk(Coordinates chunkCoord) {
+    auto it=chunks.find(chunkCoord);
+    if (it==chunks.end()) 
+        return true;
+    return false;
+}
+
 void ChunkManager::removeChunk(Coordinates chunkCoord) {
     chunks.erase(chunkCoord);
 }
@@ -152,6 +163,44 @@ void ChunkManager::renderChunks(Coordinates selected) {
        it->second.renderChunk(selected);
     }
 }
+
+void ChunkManager::proceduralMapUpdate(glm::vec3 currPos) {
+
+    currPos.x = getChunkPos(currPos.x);
+    currPos.z = getChunkPos(currPos.z);
+
+    if (oldPos.x == currPos.x && oldPos.z == currPos.z) {
+        return;
+    }
+
+    std::vector<Coordinates> list;
+
+    // for all chunks, if any chunks are not in the range of the newChunk's radius, delete them
+    for ( auto it = chunks.begin(); it != chunks.end(); ++it ) {
+        if (it->second.getX()/16 > (1 + currPos.x) || it->second.getZ()/16 < (currPos.z-1)) {
+                    std::cout << it->second.getX()/16 << " " << it->second.getZ()/16 << std::endl;
+
+                list.push_back(Coordinates(it->second.getX()/16, 0, it->second.getZ()/16));
+        }
+    }
+
+    for (int i = 0; i < list.size(); i++) {
+        removeChunk(list.at(i));
+    }
+
+    std::cout << "ADDING" << std::endl;
+    for (int i = currPos.x-2; i < currPos.x+2; i++) {
+        for (int j = currPos.z-2; j < currPos.z+2; j++) {
+            if (emptyChunk(Coordinates(i, 0, j))) {
+                addChunk(Coordinates(i,0,j));
+            } 
+        }
+    }
+
+    oldPos.x = currPos.x;
+    oldPos.z = currPos.z;
+}
+
 
 int ChunkManager::getChunkPos(int val) {
     while(1) {

@@ -15,10 +15,11 @@ class ChunkManager {
         void renderChunks(Coordinates selected);                        // when rendering chunks, pass camera  
         Chunk* getNeighbours(Coordinates chunkCoord);
         void updateChunk(Coordinates chunkCoord);
+        void proceduralMapUpdate(glm::vec3 currPos);
+        bool emptyChunk(Coordinates chunkCoord);
     private:
         int getChunkPos(int val);
-        float player_x;
-        float player_z;
+        glm::vec3 oldPos;
         std::unordered_map<Coordinates, Chunk> chunks;  // x z = val / y = 0 
         Camera *camera;
 };
