@@ -1,4 +1,5 @@
 #include "chunk_manager.h"
+#include "util.h"
 #include <iostream>
 #include <cmath>
 
@@ -169,32 +170,40 @@ void ChunkManager::proceduralMapUpdate(glm::vec3 currPos) {
     currPos.x = getChunkPos(currPos.x);
     currPos.z = getChunkPos(currPos.z);
 
+    // if the user is still in the same chunk, no need to add/remove chunks
     if (oldPos.x == currPos.x && oldPos.z == currPos.z) {
         return;
     }
 
-    std::vector<Coordinates> list;
+    std::vector<Coordinates> chunks_to_update;
 
     // for all chunks, if any chunks are not in the range of the newChunk's radius, delete them
-    for ( auto it = chunks.begin(); it != chunks.end(); ++it ) {
-        if (it->second.getX()/16 > (1 + currPos.x) || it->second.getZ()/16 < (currPos.z-1)) {
-                    std::cout << it->second.getX()/16 << " " << it->second.getZ()/16 << std::endl;
-
-                list.push_back(Coordinates(it->second.getX()/16, 0, it->second.getZ()/16));
+    for ( auto it = chunks.begin(); it != chunks.end();) {
+        if (it->second.getX()/16 > (currPos.x + CHUNK_RENDER_DISTANCE - 1) || 
+            it->second.getX()/16 < (currPos.x - CHUNK_RENDER_DISTANCE) || 
+            it->second.getZ()/16 < (currPos.z - CHUNK_RENDER_DISTANCE) || 
+            it->second.getZ()/16 > (currPos.z + CHUNK_RENDER_DISTANCE - 1) ) {
+                
+            chunks.erase(it++);
+        } else {
+            ++it;
+            continue;
         }
     }
-
-    for (int i = 0; i < list.size(); i++) {
-        removeChunk(list.at(i));
-    }
-
-    std::cout << "ADDING" << std::endl;
-    for (int i = currPos.x-2; i < currPos.x+2; i++) {
-        for (int j = currPos.z-2; j < currPos.z+2; j++) {
+    
+    // add the approriate chunks
+    for (int i = currPos.x-CHUNK_RENDER_DISTANCE; i < currPos.x+CHUNK_RENDER_DISTANCE; i++) {
+        for (int j = currPos.z-CHUNK_RENDER_DISTANCE; j < currPos.z+CHUNK_RENDER_DISTANCE; j++) {
             if (emptyChunk(Coordinates(i, 0, j))) {
                 addChunk(Coordinates(i,0,j));
+                chunks_to_update.push_back(Coordinates(i, 0, j));
             } 
         }
+    }
+
+    // update all chunks after the ones have been added - will update chunk's edge faces
+    for (int i = 0; i < chunks_to_update.size(); i++) {
+        updateChunk(chunks_to_update.at(i));
     }
 
     oldPos.x = currPos.x;

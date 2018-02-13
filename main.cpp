@@ -7,6 +7,7 @@
 #include <vector>
 #include <math.h>
 #include <string>
+#include <thread>
 
 // Include GLEW. Always include it before gl.h and glfw.h, since it's a bit magic.
 #include <GL/glew.h>
@@ -39,13 +40,16 @@ int getChunkPos(int val) {
     return val/16;
 }
 
-Coordinates Update(float secondsElapsed, ChunkManager &cm, Camera &camera, GLFWwindow* window) {
+Coordinates Update(float secondsElapsed, ChunkManager *cm, Camera &camera, GLFWwindow* window) {
 
-
-    cm.proceduralMapUpdate(camera.position());
+    //std::thread t1(&ChunkManager::proceduralMapUpdate, cm, camera.position());
+    //Chunk chunk;
+    //std::thread t1(test, camera);
+    //t1.join();
+    cm->proceduralMapUpdate(camera.position());
 
     //move position of camera based on WASD keys
-    const float moveSpeed = 2.0; //units per second
+    const float moveSpeed = 10.0; //units per second
     if(glfwGetKey(window, 'S')){
         camera.offsetPosition(secondsElapsed * moveSpeed * -camera.forward());
     } else if(glfwGetKey(window, 'W')){
@@ -80,12 +84,12 @@ Coordinates Update(float secondsElapsed, ChunkManager &cm, Camera &camera, GLFWw
         cd = Coordinates(floor(line.x), floor(line.y), floor(line.z));
 
         // keep a track of the previous position
-        if (!cm.getBlock(cd)) {
+        if (!cm->getBlock(cd)) {
             prevLine = line;
         }
 
         // if block found
-        if (cm.getBlock(cd)) {
+        if (cm->getBlock(cd)) {
             currSelected = cd;
             break;
         } 
@@ -97,17 +101,17 @@ Coordinates Update(float secondsElapsed, ChunkManager &cm, Camera &camera, GLFWw
     }
     int stateLeft = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
     if (stateLeft == GLFW_PRESS && leftMousePressed == 0){
-        if (cm.getBlock(cd)) {
-            cm.removeBlock(cd);
+        if (cm->getBlock(cd)) {
+            cm->removeBlock(cd);
             leftMousePressed = 1;
         }
     }
 
     int stateRight = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT);
     if (stateRight == GLFW_PRESS && rightMousePressed == 0){
-        if (cm.getBlock(cd)) {
+        if (cm->getBlock(cd)) {
             Coordinates cs = Coordinates(floor(prevLine.x), floor(prevLine.y), floor(prevLine.z));
-            cm.addBlock(Coordinates(cs.x, cs.y, cs.z), BlockType::DIRT);
+            cm->addBlock(Coordinates(cs.x, cs.y, cs.z), BlockType::DIRT);
             rightMousePressed = 1;
         }
     }
@@ -132,12 +136,12 @@ Coordinates Update(float secondsElapsed, ChunkManager &cm, Camera &camera, GLFWw
 }
 
 // draws a single frame
-void Render(ChunkManager &cm, Coordinates selected, Camera &camera, GLFWwindow *window, GUI gui, SkyBox skybox) {
+void Render(ChunkManager *cm, Coordinates selected, Camera &camera, GLFWwindow *window, GUI gui, SkyBox skybox) {
 
     // clear everything
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    cm.renderChunks(selected);
+    cm->renderChunks(selected);
 
     gui.RenderCrosshair();
 
@@ -211,19 +215,19 @@ int main() {
     int frames = 0;
 
     // chunk manager holds all chunks and deals with them
-    ChunkManager cm(&camera);
+    ChunkManager* cm = new ChunkManager(&camera);
 
     // itialize basic blocks - mainly just for testing here
-    for (int i = -2; i < 2; i++) {
-        for (int j = -2; j < 2; j++) {
-            cm.addChunk(Coordinates(i,0,j));
+    for (int i = -CHUNK_RENDER_DISTANCE; i < CHUNK_RENDER_DISTANCE; i++) {
+        for (int j = -CHUNK_RENDER_DISTANCE; j < CHUNK_RENDER_DISTANCE; j++) {
+            cm->addChunk(Coordinates(i,0,j));
         }
     }
 
     // itialize basic blocks - mainly just for testing here
-    for (int i = -2; i < 2; i++) {
-        for (int j = -2; j < 2; j++) {
-            cm.updateChunk(Coordinates(i,0,j));
+    for (int i = -CHUNK_RENDER_DISTANCE; i < CHUNK_RENDER_DISTANCE; i++) {
+        for (int j = -CHUNK_RENDER_DISTANCE; j < CHUNK_RENDER_DISTANCE; j++) {
+            cm->updateChunk(Coordinates(i,0,j));
         }
     }
 
