@@ -1,4 +1,5 @@
 #include "block.h"
+#include <iostream>
 
 TextureSides sameSides(int x, int y) {
     TextureSides ts;
@@ -61,14 +62,14 @@ void addBottomFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockTy
     TextureSides ts = getTextureSides(bt);
 
     GLfloat vert_uv_data[] = {
-        coord.x, coord.y, coord.z,   TEXCOORDX(ts.bottom_x),  TEXCOORDY(ts.bottom_y),
-        coord.x+1.0f, coord.y, coord.z,   TEXCOORDX(ts.bottom_x)+N,TEXCOORDY(ts.bottom_y),
-        coord.x, coord.y, coord.z+1.0f,   TEXCOORDX(ts.bottom_x),  TEXCOORDY(ts.bottom_y)+N,
-        coord.x+1.0f, coord.y, coord.z,   TEXCOORDX(ts.bottom_x)+N,TEXCOORDY(ts.bottom_y),
-        coord.x+1.0f, coord.y, coord.z+1.0f,   TEXCOORDX(ts.bottom_x)+N,TEXCOORDY(ts.bottom_y)+N,
-        coord.x, coord.y, coord.z+1.0f,   TEXCOORDX(ts.bottom_x),  TEXCOORDY(ts.bottom_y)+N,  
+        coord.x, coord.y, coord.z,   TEXCOORDX(ts.bottom_x),  TEXCOORDY(ts.bottom_y), 0, -1, 0,
+        coord.x+1.0f, coord.y, coord.z,   TEXCOORDX(ts.bottom_x)+N,TEXCOORDY(ts.bottom_y), 0, -1, 0,
+        coord.x, coord.y, coord.z+1.0f,   TEXCOORDX(ts.bottom_x),  TEXCOORDY(ts.bottom_y)+N, 0, -1, 0,
+        coord.x+1.0f, coord.y, coord.z,   TEXCOORDX(ts.bottom_x)+N,TEXCOORDY(ts.bottom_y), 0, -1, 0,
+        coord.x+1.0f, coord.y, coord.z+1.0f,   TEXCOORDX(ts.bottom_x)+N,TEXCOORDY(ts.bottom_y)+N, 0, -1, 0,
+        coord.x, coord.y, coord.z+1.0f,   TEXCOORDX(ts.bottom_x),  TEXCOORDY(ts.bottom_y)+N, 0, -1, 0,
     };
-    buffer_data.insert(buffer_data.end(), vert_uv_data, vert_uv_data+30);
+    buffer_data.insert(buffer_data.end(), vert_uv_data, vert_uv_data+48);
 }
 
 void addTopFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt) {
@@ -76,14 +77,14 @@ void addTopFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType 
     TextureSides ts = getTextureSides(bt);
 
     GLfloat vert_uv_data[] = {
-        coord.x, coord.y+1.0f, coord.z,   TEXCOORDX(ts.top_x),  TEXCOORDY(ts.top_y),
-        coord.x, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.top_x),  TEXCOORDY(ts.top_y)+N,
-        coord.x+1.0f, coord.y+1.0f, coord.z,   TEXCOORDX(ts.top_x)+N,TEXCOORDY(ts.top_y),
-        coord.x+1.0f, coord.y+1.0f, coord.z,   TEXCOORDX(ts.top_x)+N,TEXCOORDY(ts.top_y),
-        coord.x, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.top_x),  TEXCOORDY(ts.top_y)+N,
-        coord.x+1.0f, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.top_x)+N,TEXCOORDY(ts.top_y)+N, 
+        coord.x, coord.y+1.0f, coord.z,   TEXCOORDX(ts.top_x),  TEXCOORDY(ts.top_y), 0, 1, 0,
+        coord.x, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.top_x),  TEXCOORDY(ts.top_y)+N, 0, 1, 0,
+        coord.x+1.0f, coord.y+1.0f, coord.z,   TEXCOORDX(ts.top_x)+N,TEXCOORDY(ts.top_y), 0, 1, 0,
+        coord.x+1.0f, coord.y+1.0f, coord.z,   TEXCOORDX(ts.top_x)+N,TEXCOORDY(ts.top_y), 0, 1, 0,
+        coord.x, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.top_x),  TEXCOORDY(ts.top_y)+N,  0, 1, 0,
+        coord.x+1.0f, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.top_x)+N,TEXCOORDY(ts.top_y)+N, 0, 1, 0,
     };
-    buffer_data.insert(buffer_data.end(), vert_uv_data, vert_uv_data+30);
+    buffer_data.insert(buffer_data.end(), vert_uv_data, vert_uv_data+48);
 }
 
 void addFrontFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt) {
@@ -91,14 +92,14 @@ void addFrontFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockTyp
     TextureSides ts = getTextureSides(bt);
 
     GLfloat vert_uv_data[] = {
-        coord.x, coord.y, coord.z+1.0f,   TEXCOORDX(ts.front_x)+N,TEXCOORDY(ts.front_y),
-        coord.x+1.0f, coord.y, coord.z+1.0f,   TEXCOORDX(ts.front_x),  TEXCOORDY(ts.front_y),
-        coord.x, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.front_x)+N,TEXCOORDY(ts.front_y)+N,
-        coord.x+1.0f, coord.y, coord.z+1.0f,   TEXCOORDX(ts.front_x),  TEXCOORDY(ts.front_y),
-        coord.x+1.0f, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.front_x),  TEXCOORDY(ts.front_y)+N,
-        coord.x, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.front_x)+N,TEXCOORDY(ts.front_y)+N,
+        coord.x, coord.y, coord.z+1.0f,   TEXCOORDX(ts.front_x)+N,TEXCOORDY(ts.front_y), 0, 0, -1,
+        coord.x+1.0f, coord.y, coord.z+1.0f,   TEXCOORDX(ts.front_x),  TEXCOORDY(ts.front_y), 0, 0, -1,
+        coord.x, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.front_x)+N,TEXCOORDY(ts.front_y)+N, 0, 0, -1,
+        coord.x+1.0f, coord.y, coord.z+1.0f,   TEXCOORDX(ts.front_x),  TEXCOORDY(ts.front_y), 0, 0, -1,
+        coord.x+1.0f, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.front_x),  TEXCOORDY(ts.front_y)+N, 0, 0, -1,
+        coord.x, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.front_x)+N,TEXCOORDY(ts.front_y)+N, 0, 0, -1,
     };
-    buffer_data.insert(buffer_data.end(), vert_uv_data, vert_uv_data+30);
+    buffer_data.insert(buffer_data.end(), vert_uv_data, vert_uv_data+48);
 }
 
 void addBackFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt) {
@@ -106,14 +107,14 @@ void addBackFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType
     TextureSides ts = getTextureSides(bt);
 
     GLfloat vert_uv_data[] = {
-        coord.x, coord.y, coord.z,   TEXCOORDX(ts.back_x),  TEXCOORDY(ts.back_y),
-        coord.x, coord.y+1.0f, coord.z,   TEXCOORDX(ts.back_x),  TEXCOORDY(ts.back_y)+N,
-        coord.x+1.0f, coord.y, coord.z,   TEXCOORDX(ts.back_x)+N,TEXCOORDY(ts.back_y),
-        coord.x+1.0f, coord.y, coord.z,   TEXCOORDX(ts.back_x)+N,TEXCOORDY(ts.back_y),
-        coord.x, coord.y+1.0f, coord.z,   TEXCOORDX(ts.back_x),  TEXCOORDY(ts.back_y)+N,
-        coord.x+1.0f, coord.y+1.0f, coord.z,   TEXCOORDX(ts.back_x)+N,TEXCOORDY(ts.back_y)+N,
+        coord.x, coord.y, coord.z,   TEXCOORDX(ts.back_x),  TEXCOORDY(ts.back_y), 0, 0, 1,
+        coord.x, coord.y+1.0f, coord.z,   TEXCOORDX(ts.back_x),  TEXCOORDY(ts.back_y)+N,  0, 0, 1,
+        coord.x+1.0f, coord.y, coord.z,   TEXCOORDX(ts.back_x)+N,TEXCOORDY(ts.back_y),  0, 0, 1,
+        coord.x+1.0f, coord.y, coord.z,   TEXCOORDX(ts.back_x)+N,TEXCOORDY(ts.back_y),  0, 0, 1,
+        coord.x, coord.y+1.0f, coord.z,   TEXCOORDX(ts.back_x),  TEXCOORDY(ts.back_y)+N,  0, 0, 1,
+        coord.x+1.0f, coord.y+1.0f, coord.z,   TEXCOORDX(ts.back_x)+N,TEXCOORDY(ts.back_y)+N,  0, 0, 1,
     };
-    buffer_data.insert(buffer_data.end(), vert_uv_data, vert_uv_data+30);
+    buffer_data.insert(buffer_data.end(), vert_uv_data, vert_uv_data+48);
 }
 
 void addLeftFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt) {
@@ -121,14 +122,14 @@ void addLeftFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType
     TextureSides ts = getTextureSides(bt);
 
     GLfloat vert_uv_data[] = {
-        coord.x, coord.y, coord.z+1.0f,   TEXCOORDX(ts.left_x),  TEXCOORDY(ts.left_y),
-        coord.x, coord.y+1.0f, coord.z,   TEXCOORDX(ts.left_x)+N,TEXCOORDY(ts.left_y)+N,
-        coord.x, coord.y, coord.z,   TEXCOORDX(ts.left_x)+N,TEXCOORDY(ts.left_y),
-        coord.x, coord.y, coord.z+1.0f,   TEXCOORDX(ts.left_x),  TEXCOORDY(ts.left_y),
-        coord.x, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.left_x),  TEXCOORDY(ts.left_y)+N,
-        coord.x, coord.y+1.0f, coord.z,   TEXCOORDX(ts.left_x)+N,TEXCOORDY(ts.left_y)+N,
+        coord.x, coord.y, coord.z+1.0f,   TEXCOORDX(ts.left_x),  TEXCOORDY(ts.left_y),  -1, 0, 0,
+        coord.x, coord.y+1.0f, coord.z,   TEXCOORDX(ts.left_x)+N,TEXCOORDY(ts.left_y)+N,  -1, 0, 0,
+        coord.x, coord.y, coord.z,   TEXCOORDX(ts.left_x)+N,TEXCOORDY(ts.left_y),  -1, 0, 0,
+        coord.x, coord.y, coord.z+1.0f,   TEXCOORDX(ts.left_x),  TEXCOORDY(ts.left_y),  -1, 0, 0,
+        coord.x, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.left_x),  TEXCOORDY(ts.left_y)+N,  -1, 0, 0,
+        coord.x, coord.y+1.0f, coord.z,   TEXCOORDX(ts.left_x)+N,TEXCOORDY(ts.left_y)+N,  -1, 0, 0,
     };
-    buffer_data.insert(buffer_data.end(), vert_uv_data, vert_uv_data+30);
+    buffer_data.insert(buffer_data.end(), vert_uv_data, vert_uv_data+48);
 }
 
 
@@ -137,12 +138,12 @@ void addRightFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockTyp
     TextureSides ts = getTextureSides(bt);
 
     GLfloat vert_uv_data[] = {
-        coord.x+1.0f, coord.y, coord.z+1.0f,   TEXCOORDX(ts.right_x)+N,TEXCOORDY(ts.right_y),
-        coord.x+1.0f, coord.y, coord.z,   TEXCOORDX(ts.right_x),  TEXCOORDY(ts.right_y),
-        coord.x+1.0f, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.right_x)+N,TEXCOORDY(ts.right_y)+N,
-        coord.x+1.0f, coord.y, coord.z,   TEXCOORDX(ts.right_x),  TEXCOORDY(ts.right_y),
-        coord.x+1.0f, coord.y+1.0f, coord.z,   TEXCOORDX(ts.right_x),  TEXCOORDY(ts.right_y)+N,
-        coord.x+1.0f, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.right_x)+N,TEXCOORDY(ts.right_y)+N
+        coord.x+1.0f, coord.y, coord.z+1.0f,   TEXCOORDX(ts.right_x)+N,TEXCOORDY(ts.right_y),  1, 0, 0,
+        coord.x+1.0f, coord.y, coord.z,   TEXCOORDX(ts.right_x),  TEXCOORDY(ts.right_y), 1, 0, 0,
+        coord.x+1.0f, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.right_x)+N,TEXCOORDY(ts.right_y)+N, 1, 0, 0,
+        coord.x+1.0f, coord.y, coord.z,   TEXCOORDX(ts.right_x),  TEXCOORDY(ts.right_y), 1, 0, 0,
+        coord.x+1.0f, coord.y+1.0f, coord.z,   TEXCOORDX(ts.right_x),  TEXCOORDY(ts.right_y)+N, 1, 0, 0,
+        coord.x+1.0f, coord.y+1.0f, coord.z+1.0f,   TEXCOORDX(ts.right_x)+N,TEXCOORDY(ts.right_y)+N, 1, 0, 0,
     };
-    buffer_data.insert(buffer_data.end(), vert_uv_data, vert_uv_data+30);
+    buffer_data.insert(buffer_data.end(), vert_uv_data, vert_uv_data+48);
 }

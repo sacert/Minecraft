@@ -271,9 +271,19 @@ void Chunk::renderChunk(Coordinates selected) {
 
     // set up the camera
     GLint cameraMatrix = glGetUniformLocation(shaders, "camera");
-    glm::mat4 cameraView = camera->matrix();
+    glm::mat4 cameraMat = camera->matrix();
  	glUniformMatrix4fv(
  		cameraMatrix,	// Id of this uniform variable
+ 		1,			    // Number of matrices
+ 		GL_FALSE,	    // Transpose
+ 		&cameraMat[0][0]	// The location of the data
+     );
+     
+     // set up the camera's view
+    GLint viewMatrix = glGetUniformLocation(shaders, "view");
+    glm::mat4 cameraView = camera->view();
+ 	glUniformMatrix4fv(
+ 		viewMatrix,	// Id of this uniform variable
  		1,			    // Number of matrices
  		GL_FALSE,	    // Transpose
  		&cameraView[0][0]	// The location of the data
@@ -406,7 +416,7 @@ void Chunk::fillBlockType() {
 
 // sends data in VAO to openGL shaders
 void Chunk::sendVAO() {
-
+    
     // Give our vertices and UVs to OpenGL.
     glBufferData(GL_ARRAY_BUFFER, buffer_data.size() * sizeof(GLfloat), buffer_data.data(), GL_STATIC_DRAW);
 
@@ -419,7 +429,7 @@ void Chunk::sendVAO() {
         3,                  // size
         GL_FLOAT,           // type
         GL_FALSE,           // normalized?
-        5*sizeof(GLfloat),  // stride
+        8*sizeof(GLfloat),  // stride
         (void*)0            // array buffer offset
     );
 
@@ -432,8 +442,20 @@ void Chunk::sendVAO() {
         2,                  // size
         GL_FLOAT,           // type
         GL_FALSE,           // normalized?
-        5*sizeof(GLfloat),  // stride
+        8*sizeof(GLfloat),  // stride
         (const GLvoid*)(3 * sizeof(GLfloat))    // array buffer offset
+    );
+
+    // Equals to the normal values for corresponding vertices to the block
+    GLuint gVertNormal = glGetAttribLocation(shaders, "vertNormal");
+    glEnableVertexAttribArray(gVertNormal);
+    glVertexAttribPointer(
+        2,                  // attribute 1
+        3,                  // size
+        GL_FLOAT,           // type
+        GL_FALSE,           // normalized?
+        8*sizeof(GLfloat),  // stride
+        (const GLvoid*)(5 * sizeof(GLfloat))    // array buffer offset
     );
 
     // unbind VAO and VBO 

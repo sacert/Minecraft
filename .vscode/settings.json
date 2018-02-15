@@ -32,6 +32,7 @@
         "random": "cpp",
         "unordered_map": "cpp",
         "__hash_table": "cpp",
-        "__tuple": "cpp"
+        "__tuple": "cpp",
+        "__string": "c"
     }
 }
