@@ -33,6 +33,8 @@ class Chunk {
         void fillBlockType();
         void sendVAO();
         void loadTrees();
+        void loadPlants();
+        bool checkPlants(BlockType bt);
         int chunk_x;
         int chunk_z;
         double faces;
@@ -48,4 +50,5 @@ class Chunk {
         Frustum frustum;
         Chunk* neighbours;
         bool empty;
+        int sand_height;
 };

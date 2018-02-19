@@ -15,6 +15,13 @@ enum BlockType {
     SAND,
     LEAVES,
     WOOD,
+    GRASS_PLANT,
+    FLOWER_RED_PLANT,
+    FLOWER_YELLOW_PLANT,
+    MUSHROOM_RED,
+    MUSHROOM_PINK,
+    FERN_1,
+    FERN_2,
     EMPTY,
 };
 
@@ -73,6 +80,11 @@ TextureSides sameSides(int x, int y);
 TextureSides differentSides(int front_x, int front_y, int back_x, int back_y, int right_x, int right_y, int left_x, int left_y, int top_x, int top_y, int bottom_x, int bottom_y);
 TextureSides getTextureSides(BlockType bt);
 
+// for plants
+void addCrossFace_1(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);
+void addCrossFace_2(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);
+
+// for blocks
 void addBottomFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);
 void addTopFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);
 void addRightFace(std::vector<GLfloat> &buffer_data, Coordinates coord, BlockType bt);

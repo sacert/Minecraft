@@ -4,7 +4,6 @@
 #include "chunk.h"
 #include "util.h"
 #include <iostream>
-#include "Texture.h"
 
 Chunk::Chunk() {
     empty = true;
@@ -34,6 +33,9 @@ Chunk::Chunk(int x, int z, Camera *cam) {
             blocks[i][j] = new BlockType[CHUNK_SIZE];
         }
     }
+
+    // height which if the height map is lower than this, it will be sand rather than grass + dirt
+    sand_height = -6;
 }
 
 // copy constructor
@@ -68,6 +70,7 @@ Chunk::Chunk (const Chunk& other) {
     frustum = other.frustum;
     neighbours = other.neighbours;
     empty = other.empty;
+    sand_height = other.sand_height;
 }
 
 // copy assignment
@@ -85,6 +88,8 @@ Chunk& Chunk::operator= (const Chunk& other)
 
     empty = other.empty;
     blocks = other.blocks;
+
+    sand_height = other.sand_height;
 
     return *this;
 }
@@ -128,7 +133,13 @@ void Chunk::updateChunk(Chunk* nb) {
 
                 BlockType bt = blocks[block_x][block_y][block_z];
 
-                if (bt != BlockType::AIR) {
+                // plants get cross faces while blocks are obviously blocks
+                // plants get cross faces while blocks are obviously blocks
+                if (checkPlants(bt)) {
+                    addCrossFace_1(buffer_data, coord, bt);
+                    addCrossFace_2(buffer_data, coord, bt);
+                    faces++;
+                }  else if (bt != BlockType::AIR) {
                     // top
                     if (checkNeighbour(block_x,block_y+1,block_z)) {
                         addTopFace(buffer_data, coord, bt);
@@ -194,10 +205,13 @@ void Chunk::createChunk() {
 
                 BlockType bt = blocks[block_x][block_y][block_z];
 
-        
-                if (bt != BlockType::AIR) {
+                // plants get cross faces while blocks are obviously blocks
+                if (checkPlants(bt)) {
+                    addCrossFace_1(buffer_data, coord, bt);
+                    addCrossFace_2(buffer_data, coord, bt);
+                    faces++;
+                } else if (bt != BlockType::AIR) {
                     // top
-                    
                     if (checkFace(block_x,block_y+1,block_z)) {
                         addTopFace(buffer_data, coord, bt);
                         faces++;
@@ -335,7 +349,7 @@ bool Chunk::checkNeighbour(int x, int y, int z) {
     if (x < 0 || x > 15 || y < 0 || y > 255 || z < 0 || z > 15) {
         return false;
     }
-    return (blocks[x][y][z] == BlockType::AIR || blocks[x][y][z] == BlockType::LEAVES);
+    return (blocks[x][y][z] == BlockType::AIR || checkPlants(blocks[x][y][z]));
 }
 
 void Chunk::addBlock(Coordinates blockCoord, BlockType bt) {
@@ -390,9 +404,9 @@ void Chunk::fillBlockType() {
 
             // if the height found from using noise is too low, fill it with sand blocks instead
             bool replace_with_sand = false;
-            if (height < -5) {
+            if (height <= sand_height) {
                 replace_with_sand = true;
-                height = -6;
+                height = sand_height;
             }
 
             for (int y = minHeight; y < maxHeight; y++) {
@@ -426,6 +440,48 @@ void Chunk::fillBlockType() {
     }
 
     loadTrees();
+    loadPlants();
+}
+
+void Chunk::loadPlants() {
+     for (int x = chunk_x; x < (chunk_x+CHUNK_SIZE); x++) {
+        for (int z = chunk_z; z < (chunk_z+CHUNK_SIZE); z++) {
+
+            float height = round(perlinNoise.GetNoise(x,z) * 10);
+
+            // convert to 0 .. 15 / 255
+            int block_x = x - chunk_x;
+            int block_y = height+1 + CHUNK_HEIGHT/2;
+            int block_z = z - chunk_z;
+
+            // don't add anything on the edge of chunks - causes rendering issues
+            bool onEdge = true;
+            if (x > chunk_x + 1 && x < (chunk_x+CHUNK_SIZE) - 1 && z > chunk_z + 1 && z < (chunk_z+CHUNK_SIZE) - 1) {
+                onEdge = false;
+            }
+
+            // make sure there is nothing already there and if isn't where sand would be
+            if (!onEdge && height > sand_height && blocks[block_x][block_y][block_z] == BlockType::AIR && (float)rand()/RAND_MAX < 0.2) {
+                float randomValue = (float)rand()/RAND_MAX;
+
+                if (randomValue <= 0.7) {
+                    blocks[block_x][block_y][block_z] = BlockType::GRASS_PLANT;
+                } else if (randomValue > 0.7 && randomValue <= 0.80) {
+                    blocks[block_x][block_y][block_z] = BlockType::FLOWER_RED_PLANT;
+                } else if (randomValue > 0.80 && randomValue <= 0.90) {
+                    blocks[block_x][block_y][block_z] = BlockType::FLOWER_YELLOW_PLANT;
+                } else if (randomValue > 0.90 && randomValue <= 0.925) {
+                    blocks[block_x][block_y][block_z] = BlockType::MUSHROOM_RED;
+                } else if (randomValue > 0.925 && randomValue <= 0.95) {
+                    blocks[block_x][block_y][block_z] = BlockType::MUSHROOM_PINK;
+                } else if (randomValue > 0.95 && randomValue <= 0.975) {
+                    blocks[block_x][block_y][block_z] = BlockType::FERN_1;
+                } else if (randomValue > 0.975 && randomValue <= 1.00) {
+                    blocks[block_x][block_y][block_z] = BlockType::FERN_2;
+                }
+            }
+        }
+     }
 }
 
 void Chunk::loadTrees() {
@@ -525,4 +581,10 @@ void Chunk::sendVAO() {
     // unbind VAO and VBO 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+// comes up often enough - check if the block is a type of plant
+bool Chunk::checkPlants(BlockType bt) {
+    return (bt == BlockType::LEAVES || bt == BlockType::GRASS_PLANT || bt == BlockType::FLOWER_RED_PLANT || bt == BlockType::FLOWER_YELLOW_PLANT ||
+            bt == BlockType::MUSHROOM_RED || bt == BlockType::MUSHROOM_PINK || bt == BlockType::FERN_1 || bt == BlockType::FERN_2);
 }

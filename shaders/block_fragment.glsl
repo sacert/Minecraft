@@ -39,12 +39,12 @@ void main(){
 
     // check if grass or leaves, change to green if so -- NOTE: Simplified version to change grass color, change depending on biome later
     // this is ugly and it works but yknow the old saying, "if it's ugly and it works, it's still ugly" :(
-    if ( 0 <= fragTexCoord.x && fragTexCoord.x <= 0.0625 && 0 <= fragTexCoord.y && fragTexCoord.y <= 0.0625 ) {
+    if ( 0 <= fragTexCoord.x && fragTexCoord.x <= 0.0625 && 0 <= fragTexCoord.y && fragTexCoord.y <= 0.0625 ) { // grass block
         frag_color = vec3(color.r * 0.5, color.g*0.80, color.b * 0.26118) * vec3(1.2,1.2,1.2);
-    } else if ( 0.25 <= fragTexCoord.x && fragTexCoord.x <= 0.3125 && 0.1875 <= fragTexCoord.y && fragTexCoord.y <= 0.25) {
+    } else if ( 0.25 <= fragTexCoord.x && fragTexCoord.x <= 0.3125 && 0.1875 <= fragTexCoord.y && fragTexCoord.y <= 0.25) { // leaves
         frag_color = vec3(color.r * 0.4, color.g*0.60, color.b * 0.16118) * vec3(1.2,1.2,1.2);
-                //frag_color = vec3(color.r * 0.2, color.g*0.49, color.b * 0.13) * vec3(1.2,1.2,1.2);
-
+    } else if ( 0.4375 <= fragTexCoord.x && fragTexCoord.x <= 0.5 && 0.125 <= fragTexCoord.y && fragTexCoord.y <= 0.1875) { // grass plant
+        frag_color = vec3(color.r * 0.4, color.g*0.8, color.b * 0.3) * vec3(1.2,1.2,1.2);
     } else {
         frag_color = vec3(color.r, color.g, color.b);
     }
