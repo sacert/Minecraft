@@ -17,6 +17,7 @@ Chunk::Chunk(int x, int z, Camera *cam) {
 
     // each chunk has it's own perlin noise
     perlinNoise.SetNoiseType(FastNoise::Perlin); 
+    perlinNoise.SetFrequency(0.03);
     perlinNoise.SetSeed(123);
 
     texture = LoadTexture("texture.png");
@@ -334,7 +335,7 @@ bool Chunk::checkNeighbour(int x, int y, int z) {
     if (x < 0 || x > 15 || y < 0 || y > 255 || z < 0 || z > 15) {
         return false;
     }
-    return (blocks[x][y][z] == BlockType::AIR);
+    return (blocks[x][y][z] == BlockType::AIR || blocks[x][y][z] == BlockType::LEAVES);
 }
 
 void Chunk::addBlock(Coordinates blockCoord, BlockType bt) {
@@ -386,18 +387,30 @@ void Chunk::fillBlockType() {
         for (int z = chunk_z; z < (chunk_z+CHUNK_SIZE); z++) {
 
             float height = round(perlinNoise.GetNoise(x,z) * 10);
+
+            // if the height found from using noise is too low, fill it with sand blocks instead
+            bool replace_with_sand = false;
+            if (height < -5) {
+                replace_with_sand = true;
+                height = -6;
+            }
+
             for (int y = minHeight; y < maxHeight; y++) {
 
                 BlockType bt;
 
                 if (y > height) {
                     bt = BlockType::AIR;
-                } else if (y == height) {
+                } else if (y == height && replace_with_sand) {
+                    bt = BlockType::SAND;
+                } else if (y == height && !replace_with_sand) {
                     bt = BlockType::GRASS;
                 } else if (y <= -8 && y > -127) {
                     bt = BlockType::COBBLESTONE;
                 } else if (y == -127) {
                     bt = BlockType::BEDROCK;
+                } else if (replace_with_sand){
+                    bt = BlockType::SAND;
                 } else {
                     bt = BlockType::DIRT;
                 }
@@ -408,7 +421,58 @@ void Chunk::fillBlockType() {
                 int block_z = z - chunk_z;
                 
                 blocks[block_x][block_y][block_z] = bt;
+            }
+        }
+    }
 
+    loadTrees();
+}
+
+void Chunk::loadTrees() {
+    for (int x = chunk_x; x < (chunk_x+CHUNK_SIZE); x++) {
+        for (int z = chunk_z; z < (chunk_z+CHUNK_SIZE); z++) {
+
+            float height = round(perlinNoise.GetNoise(x,z) * 10);
+
+            // check if there is a tree nearby - don't allow over lapping of trees
+            bool isTree = false;
+            if (x > chunk_x + 3 && x < (chunk_x+CHUNK_SIZE) - 3 && z > chunk_z +3 && z < (chunk_z+CHUNK_SIZE) -3) {
+                for (int xx = x-3; xx < x+3; xx++) {
+                    for (int zz = z-3; zz < z+3; zz++) {
+                        for (int y = height+3; y < height+8; y++) {
+                            int block_x = xx - chunk_x;
+                            int block_y = y + CHUNK_HEIGHT/2;
+                            int block_z = zz - chunk_z;
+                            if (blocks[block_x][block_y][block_z] == BlockType::LEAVES || blocks[block_x][block_y][block_z] == BlockType::WOOD) {
+                                isTree = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // randomly add tree but make sure it isn't too close to the edge of the chunk to prevent glitchy half trees
+            if (!isTree && height >= 0 && (float)rand()/RAND_MAX < 0.1 && x > chunk_x + 3 && x < (chunk_x+CHUNK_SIZE) - 3 && z > chunk_z +3 && z < (chunk_z+CHUNK_SIZE) -3) {
+                
+                // leaves
+                for (int y = height + 3; y < height + 8; y++) {
+                    for (int dx = -3; dx <= 3; dx++) {
+                        for (int dz = -3; dz <= 3; dz++) {
+                            int dy = y - (height + 4);
+                            int d = (dx * dx) + (dy * dy) + (dz * dz);
+                            
+                            if (d < 11) {
+                                blocks[x + dx - chunk_x][y + CHUNK_HEIGHT/2][z + dz - chunk_z] = BlockType::LEAVES;
+                            }
+                        }
+                    }
+                }
+
+                // bark
+                for (int y = height; y < height + 6; y++) {
+                    blocks[x - chunk_x][y + CHUNK_HEIGHT/2][z - chunk_z] = BlockType::WOOD;
+                }
             }
         }
     }

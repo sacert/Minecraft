@@ -32,6 +32,7 @@ class Chunk {
         void bufferSetup();
         void fillBlockType();
         void sendVAO();
+        void loadTrees();
         int chunk_x;
         int chunk_z;
         double faces;

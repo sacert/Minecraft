@@ -44,14 +44,20 @@ TextureSides getTextureSides(BlockType bt) {
 
     TextureSides gts;
 
-    if (bt == 1) {              // Grass
+    if (bt == BlockType::GRASS) {               
         gts = differentSides( 3, 15, 3, 15, 3, 15, 3, 15, 0, 15, 2, 15);
-    } else if (bt == 2) {       // Dirt
+    } else if (bt == BlockType::DIRT) {            
         gts = sameSides(2, 15);
-    } else if (bt == 3) {       // Cobblestone
+    } else if (bt == BlockType::COBBLESTONE) {     
         gts = sameSides(0, 14);
-    } else if (bt == 4) {       // Bedrock
+    } else if (bt == BlockType::BEDROCK) {         
         gts = sameSides(1, 14);
+    } else if (bt == BlockType::SAND) { 
+        gts = sameSides(2, 14);
+    } else if (bt == BlockType::LEAVES) {
+        gts = sameSides(4,12);
+    } else if (bt == BlockType::WOOD) {
+        gts = differentSides( 4, 14, 4, 14, 4, 14, 4, 14, 5, 14, 5, 14);
     }
 
     return gts;
