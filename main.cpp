@@ -143,12 +143,17 @@ void Render(ChunkManager *cm, Coordinates selected, Camera &camera, GLFWwindow *
 
     cm->renderChunks(selected);
 
-    gui.RenderCrosshair();
-
     // render skybox last
     glDisable(GL_CULL_FACE);
     skybox.Render(camera);
     glEnable(GL_CULL_FACE);
+
+    // render crosshair and inventory
+    // disable depth test so it always appears in front - like a gui
+    glDisable(GL_DEPTH_TEST);
+    gui.RenderCrosshair();
+    gui.RenderInventory();
+    glEnable(GL_DEPTH_TEST);
     
     // swap the display buffers (displays what was just drawn)
     glfwSwapBuffers(window);
@@ -203,7 +208,8 @@ int main() {
     skybox.LoadSkyBox();
 
     GUI gui;
-    gui.LoadGUI();
+    gui.LoadCrosshair();
+    gui.LoadInventory();
 
     // Setup camera
     Camera camera;

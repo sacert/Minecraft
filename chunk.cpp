@@ -253,7 +253,7 @@ void Chunk::createChunk() {
 
 void Chunk::renderChunk(Coordinates selected) {
 
-     int maxHeight = CHUNK_HEIGHT/2;
+    int maxHeight = CHUNK_HEIGHT/2;
     int minHeight = -maxHeight;
 
     // update frustum to current view
