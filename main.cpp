@@ -20,16 +20,19 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
+#include "gui.h"
 #include "shader.h"
 #include "texture.h"
 #include "bitmap.h"
 #include "camera.h"
 #include "skybox.h"
-#include "gui.h"
 #include "util.h"
-#include "chunk_manager.h"
 #include "libraries/stb_image.h"
 #include "libraries/FastNoise.h"
+
+// determine if the user has changed currently selected block
+int userBlock = 1;
+int prevBlock = 1;
 
 int getChunkPos(int val) {
     while(1) {
@@ -40,8 +43,31 @@ int getChunkPos(int val) {
     return val/16;
 }
 
-Coordinates Update(float secondsElapsed, ChunkManager *cm, Camera &camera, GLFWwindow* window) {
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 
+    // scrolling down - skip 0 cause that is air
+    if (yoffset < 0) {
+        userBlock -= 1;
+        if (userBlock == 0) 
+            userBlock = BlockType::WOOD;
+    } else {    // scrolling up, again skip 0 since it is air
+        userBlock += 1;
+        if ((userBlock % (BlockType::WOOD+1) == 0)) {
+            userBlock++;
+        }
+    }
+
+    // make sure to select blocks only within available blocks - in the current case everything below wood block should be placeable
+    userBlock %= (BlockType::WOOD+1);
+}
+
+Coordinates Update(float secondsElapsed, ChunkManager *cm, Camera &camera, GLFWwindow* window, GUI &gui) {
+
+    // only change the block if there has been an update
+    if (prevBlock != userBlock) {
+        gui.LoadInventory(BlockType(userBlock));
+        prevBlock = userBlock;
+    }
     //std::thread t1(&ChunkManager::proceduralMapUpdate, cm, camera.position());
     //Chunk chunk;
     //std::thread t1(test, camera);
@@ -111,7 +137,7 @@ Coordinates Update(float secondsElapsed, ChunkManager *cm, Camera &camera, GLFWw
     if (stateRight == GLFW_PRESS && rightMousePressed == 0){
         if (cm->getBlock(cd)) {
             Coordinates cs = Coordinates(floor(prevLine.x), floor(prevLine.y), floor(prevLine.z));
-            cm->addBlock(Coordinates(cs.x, cs.y, cs.z), BlockType::DIRT);
+            cm->addBlock(Coordinates(cs.x, cs.y, cs.z), BlockType(userBlock));
             rightMousePressed = 1;
         }
     }
@@ -192,6 +218,7 @@ int main() {
     // GLFW settings
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPos(window, 0, 0);
+    glfwSetScrollCallback(window, scroll_callback);
 
     // Makes sure textures factor in depth when being loaded
     glEnable(GL_DEPTH_TEST);
@@ -209,7 +236,8 @@ int main() {
 
     GUI gui;
     gui.LoadCrosshair();
-    gui.LoadInventory();
+    gui.LoadInventory(BlockType(userBlock));
+
 
     // Setup camera
     Camera camera;
@@ -249,7 +277,7 @@ int main() {
         }
 
         double update_currTime = glfwGetTime();
-        Coordinates selected = Update((float)(update_currTime - update_prevTime), cm, camera, window);
+        Coordinates selected = Update((float)(update_currTime - update_prevTime), cm, camera, window, gui);
         update_prevTime = update_currTime;
 
         // draw one frame

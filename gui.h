@@ -1,12 +1,14 @@
 #include <GL/glew.h>
 #include "camera.h"
 #include "texture.h"
+#include "chunk_manager.h"
 
 class GUI {
     public:
+        GUI();
         void LoadCrosshair();
         void RenderCrosshair();
-        void LoadInventory();
+        void LoadInventory(BlockType selected);
         void RenderInventory();
     private:
         GLuint guiVAO;

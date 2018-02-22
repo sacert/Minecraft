@@ -1,5 +1,7 @@
+#pragma once
 #include "block.h"
 #include <iostream>
+
 
 TextureSides sameSides(int x, int y) {
     TextureSides ts;

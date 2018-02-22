@@ -1,3 +1,4 @@
+#pragma once
 #include "chunk_manager.h"
 #include "util.h"
 #include <iostream>

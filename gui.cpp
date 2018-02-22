@@ -1,16 +1,23 @@
 #include "gui.h"
 #include "shader.h"
 #include "util.h"
-#include "block.h"
-#include <vector>
 #include "glm/gtc/matrix_transform.hpp"
-#include <glm/glm.hpp>
+#include <iostream>
+
+GUI::GUI() {
+
+     // set all the elements of block
+    crosshair_shaders = LoadShaders( "shaders/gui_vertex.glsl", "shaders/gui_fragment.glsl" );
+    crosshair_texture = LoadTexture("crosshair.png");
+
+    // set all the elements of block
+    inventory_texture = LoadTexture("texture.png");
+    inventory_shaders = LoadShaders( "shaders/block_vertex.glsl", "shaders/block_fragment.glsl" );
+}
+
 
 void GUI::LoadCrosshair() {
 
-    // set all the elements of block
-    crosshair_shaders = LoadShaders( "shaders/gui_vertex.glsl", "shaders/gui_fragment.glsl" );
-    crosshair_texture = LoadTexture("crosshair.png");
     scaleX = 0.15 * (SCREEN_SIZE.y/SCREEN_SIZE.x); // by multiply by screen ratio, scale x and y will make a square
     scaleY = 0.15;
     glGenBuffers(1, &guiVBO);
@@ -87,11 +94,7 @@ void GUI::RenderCrosshair() {
     glUseProgram(0);
 }
 
-void GUI::LoadInventory() {
-
-    // set all the elements of block
-    inventory_texture = LoadTexture("texture.png");
-    inventory_shaders = LoadShaders( "shaders/block_vertex.glsl", "shaders/block_fragment.glsl" );
+void GUI::LoadInventory(BlockType selected) {
     
     glGenBuffers(1, &inventoryVBO);
     glGenVertexArrays(1, &inventoryVAO);
@@ -103,10 +106,8 @@ void GUI::LoadInventory() {
     // Vertex Buffer Object
     glBindBuffer(GL_ARRAY_BUFFER, inventoryVBO);
 
-    // ***********
-    BlockType bt = BlockType::GRASS;
+    BlockType bt = selected;
 
-    // ************
     Coordinates coord(-1,-1,0);
     std::vector<GLfloat> buffer_data;
 

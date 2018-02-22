@@ -1,4 +1,4 @@
-
+#pragma once
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include "chunk.h"
@@ -349,7 +349,7 @@ bool Chunk::checkNeighbour(int x, int y, int z) {
     if (x < 0 || x > 15 || y < 0 || y > 255 || z < 0 || z > 15) {
         return false;
     }
-    return (blocks[x][y][z] == BlockType::AIR || checkPlants(blocks[x][y][z]));
+    return (blocks[x][y][z] == BlockType::AIR || blocks[x][y][z] == BlockType::LEAVES || checkPlants(blocks[x][y][z]));
 }
 
 void Chunk::addBlock(Coordinates blockCoord, BlockType bt) {
@@ -585,6 +585,6 @@ void Chunk::sendVAO() {
 
 // comes up often enough - check if the block is a type of plant
 bool Chunk::checkPlants(BlockType bt) {
-    return (bt == BlockType::LEAVES || bt == BlockType::GRASS_PLANT || bt == BlockType::FLOWER_RED_PLANT || bt == BlockType::FLOWER_YELLOW_PLANT ||
+    return (bt == BlockType::GRASS_PLANT || bt == BlockType::FLOWER_RED_PLANT || bt == BlockType::FLOWER_YELLOW_PLANT ||
             bt == BlockType::MUSHROOM_RED || bt == BlockType::MUSHROOM_PINK || bt == BlockType::FERN_1 || bt == BlockType::FERN_2);
 }
